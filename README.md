@@ -1,1 +1,1 @@
-# TerminalMonitor-Mac-Swift
+# TerminalMonitor for MacOS
