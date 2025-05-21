@@ -15,7 +15,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             CommandListView()
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+                .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
             Text("Select an item")
         }

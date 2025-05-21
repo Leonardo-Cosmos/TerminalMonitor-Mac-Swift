@@ -24,6 +24,9 @@
         }
       }
     },
+    "Close Workspace" : {
+
+    },
     "Edit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -44,6 +47,9 @@
           }
         }
       }
+    },
+    "Open Workspace..." : {
+
     },
     "Remove" : {
       "localizations" : {
