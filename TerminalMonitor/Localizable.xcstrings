@@ -48,6 +48,9 @@
         }
       }
     },
+    "New Workspace..." : {
+
+    },
     "Open Workspace..." : {
 
     },
@@ -70,6 +73,9 @@
           }
         }
       }
+    },
+    "Save Workspace" : {
+
     },
     "Select an item" : {
 

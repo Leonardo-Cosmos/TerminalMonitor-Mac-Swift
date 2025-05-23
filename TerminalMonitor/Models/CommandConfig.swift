@@ -14,9 +14,16 @@ class CommandConfig: Identifiable {
     /// The name of command.
     let name: String
     
+    var startFile: String?
+    
     var arguments: String?
     
-    init(name: String) {
+    var workDirectory: String?
+    
+    init(name: String, startFile: String? = nil, arguments: String? = nil, workDirectory: String? = nil) {
         self.name = name
+        self.startFile = startFile
+        self.arguments = arguments
+        self.workDirectory = workDirectory
     }
 }
