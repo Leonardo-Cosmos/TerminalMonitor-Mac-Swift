@@ -22,7 +22,7 @@ struct TerminalMonitorApp: App {
     
     @StateObject private var viewModel = AppViewModel()
     
-    private var workspaceUrl: URL?
+    @State private var workspaceUrl: URL?
     
     private var workspaceConfig = WorkspaceConfig()
     
@@ -42,7 +42,8 @@ struct TerminalMonitorApp: App {
     var body: some Scene {
         
         WindowGroup {
-            ContentView()
+            ContentView(appViewModel: viewModel)
+                .onAppear(perform: loadWorkspace)
         }
         .modelContainer(sharedModelContainer)
         .commands {
@@ -51,26 +52,31 @@ struct TerminalMonitorApp: App {
                     createWorkspace()
                 }
                 .keyboardShortcut("N", modifiers: [.command])
+                .disabled(viewModel.workspaceLoaded)
                 
                 Button("Open Workspace...") {
                     openWorkspace()
                 }
                 .keyboardShortcut("O", modifiers: [.command])
+                .disabled(viewModel.workspaceLoaded)
                 
                 Button("Save Workspace") {
                     saveWorkspace()
                 }
                 .keyboardShortcut("S", modifiers: [.command])
+                .disabled(!viewModel.workspaceLoaded)
                 
                 Button("Close Workspace") {
                     closeWorkspace()
                 }
                 .keyboardShortcut("W", modifiers: [.command])
+                .disabled(!viewModel.workspaceLoaded)
             }
         }
+        .environmentObject(workspaceConfig)
     }
     
-    private mutating func loadWorkspace() {
+    private func loadWorkspace() {
         guard let workspaceBookmark = workspaceBookmark else {
             return
         }
@@ -85,7 +91,7 @@ struct TerminalMonitorApp: App {
                 
                 workspaceUrl = url
                 
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot restore workspace URL bookmark. \(error)")
                 viewModel.workspaceError = "Cannot restore workspace URL bookmark"
                 
@@ -97,7 +103,7 @@ struct TerminalMonitorApp: App {
                 
                 viewModel.workspaceLoaded = true
                 
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot read existing workspace setting. \(error)")
                 viewModel.workspaceError = "Cannot read existing workspace setting"
                 
@@ -115,21 +121,24 @@ struct TerminalMonitorApp: App {
         if panel.runModal() == .OK, let url = panel.url {
             Self.logger.debug("Created file: \(url.path(percentEncoded: false))")
             
+            workspaceUrl = url
+            
             do {
                 try writeWorkspaceFile(url: url)
                 
                 viewModel.workspaceLoaded = true
                 
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot create workspace setting. \(error)")
                 viewModel.workspaceError = "Cannot create workspace setting"
                 
                 return
             }
             
+            
             do {
                 workspaceBookmark = try url.bookmarkData().base64EncodedString()
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot save workspace URL bookmark. \(error)")
                 viewModel.workspaceError = "Cannot save workspace URL bookmark"
             }
@@ -146,9 +155,16 @@ struct TerminalMonitorApp: App {
         if panel.runModal() == .OK, let url = panel.url {
             Self.logger.debug("Opened file: \(url.path(percentEncoded: false))")
             
+            
+            if viewModel.workspaceLoaded {
+                closeWorkspace()
+            }
+            
+            workspaceUrl = url
+            
             do {
                 workspaceBookmark = try url.bookmarkData().base64EncodedString()
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot save workspace URL bookmark. \(error)")
                 viewModel.workspaceError = "Cannot save workspace URL bookmark"
             }
@@ -156,9 +172,10 @@ struct TerminalMonitorApp: App {
             do {
                 try readWorkspaceFile(url: url)
                 
+                workspaceUrl = url
                 viewModel.workspaceLoaded = true
                 
-            } catch let error as NSError {
+            } catch {
                 Self.logger.error("Cannot open workspace setting. \(error)")
                 viewModel.workspaceError = "Cannot open workspace setting"
             }
@@ -174,7 +191,7 @@ struct TerminalMonitorApp: App {
         do {
             try writeWorkspaceFile(url: workspaceUrl)
             
-        } catch let error as NSError {
+        } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")
             viewModel.workspaceError = "Cannot save workspace setting"
         }
@@ -192,12 +209,21 @@ struct TerminalMonitorApp: App {
         do {
             try writeWorkspaceFile(url: workspaceUrl)
             
+            clearWorkspace()
             viewModel.workspaceLoaded = false
             
-        } catch let error as NSError {
+            self.workspaceUrl = nil
+            workspaceBookmark = nil
+            
+        } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")
             viewModel.workspaceError = "Cannot save workspace setting"
         }
+    }
+    
+    private func clearWorkspace() {
+        
+        workspaceConfig.commands = []
     }
     
     private func readWorkspaceFile(url: URL) throws {

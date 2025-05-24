@@ -9,50 +9,59 @@ import SwiftUI
 
 struct CommandListView: View {
     
-    @StateObject private var viewModel = CommandViewModel()
+    @ObservedObject var appViewModel: AppViewModel
+    
+    @EnvironmentObject private var workspaceConfig: WorkspaceConfig
+    
+    @State private var commands: [CommandConfig] = [
+        CommandConfig(name: "1")
+    ]
     
     var body: some View {
-        List {
-            ForEach(viewModel.commands) { command in
-                VStack {
-                    Text(command.name)
-                        .frame(alignment: .leading)
-                    
-                    Spacer()
-                    
-                    Button("Edit", systemImage: "pencil") {
-                        CommandDetailWindowController.openWindow(for: CommandConfig(name: "New"))
-                    }
-                    .labelStyle(.iconOnly)
-                    
-                    Button("Remove", systemImage: "minus") {
-                        
-                    }
-                    .labelStyle(.iconOnly)
+        List($workspaceConfig.commands, id: \.id) { $command in
+            HStack {
+                Text(command.name)
+                    .frame(alignment: .leading)
+                
+                Spacer()
+                
+                Button("Edit", systemImage: "pencil") {
+                    CommandDetailWindowController.openWindow(for: $command)
                 }
+                .labelStyle(.iconOnly)
+                
+                Button("Remove", systemImage: "minus") {
+                    workspaceConfig.delete(id: command.id)
+                }
+                .labelStyle(.iconOnly)
             }
-            .onDelete(perform: viewModel.removeCommand)
         }
         .toolbar {
             Button("Add", systemImage: "plus") {
-                CommandDetailWindowController.openWindow(for: CommandConfig(name: "New"))
+                var commandConfig = CommandConfig(name: "")
+                CommandDetailWindowController.openWindow(for: Binding(
+                    get: { commandConfig },
+                    set: { commandConfig = $0 }
+                )) {
+                    workspaceConfig.append(commandConfig)
+                }
             }
         }
-    }
-}
-
-class CommandViewModel: ObservableObject {
-    @Published var commands: [CommandConfig] = []
-    
-    func addCommand(name: String) {
-        
-    }
-    
-    func removeCommand(at offsets: IndexSet) {
-        commands.remove(atOffsets: offsets)
+        .disabled(!appViewModel.workspaceLoaded)
     }
 }
 
 #Preview {
-    CommandListView()
+    CommandListView(appViewModel: AppViewModel())
+        .environmentObject(previewWorkspaceConfig())
+}
+
+func previewWorkspaceConfig() -> WorkspaceConfig {
+    let workspaceConfig = WorkspaceConfig()
+    workspaceConfig.commands = [
+        CommandConfig(name: "a"),
+        CommandConfig(name: "b"),
+        CommandConfig(name: "c"),
+    ]
+    return workspaceConfig
 }

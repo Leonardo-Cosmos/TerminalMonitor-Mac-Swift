@@ -11,15 +11,18 @@ struct CommandDetailView: View {
     
     var window: NSWindow?
     
-    @State private var name = ""
+    @Binding var commandConfig: CommandConfig
+    
+    var onSave: (() -> Void)?
     
     var body: some View {
         VStack {
-            TextField("Name", text: $name)
+            TextField("Name", text: $commandConfig.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
             
             Button("Save") {
+                onSave?()
                 window?.close()
             }
             .padding()
@@ -41,7 +44,7 @@ class CommandDetailWindowController {
 //        window.makeKeyAndOrderFront(nil)
 //    }
     
-    static func openWindow(for item: CommandConfig) {
+    static func openWindow(for commandConfig: Binding<CommandConfig>, onSave: (() -> Void)? = nil) {
         
         let windowContentRect = NSRect(x: 200, y: 200, width: 400, height: 300)
         let window = NSWindow(
@@ -51,12 +54,26 @@ class CommandDetailWindowController {
             defer: false
         )
         
-        let view = CommandDetailView(window: window)
+        var viewModel = CommandConfig(
+            name: commandConfig.name.wrappedValue,
+            startFile: commandConfig.startFile.wrappedValue,
+        )
+        
+        let view = CommandDetailView(window: window, commandConfig: Binding(
+            get: { viewModel },
+            set: { viewModel = $0 }
+        ), onSave: {
+            // Update binding value of list view only when save button is clicked
+            commandConfig.name.wrappedValue = viewModel.name
+            commandConfig.startFile.wrappedValue = viewModel.startFile
+            
+            onSave?()
+        })
         let hostingController = NSHostingController(rootView: view)
         window.contentViewController = hostingController
         // Rest window frame after view controller is set
         window.setFrame(windowContentRect, display: true)
-             
+        
         let windowController = NSWindowController(window: window)
         windowController.window?.makeKeyAndOrderFront(nil)
         windowController.showWindow(nil)
@@ -71,12 +88,14 @@ class CommandDetailWindowController {
 //        )
 //        window.styleMask = [.titled, .closable, .resizable]
 //        window.setFrame(NSRect(x: 200, y: 200, width: 400, height: 300), display: true)
-//        
+//
 //        self.init(window: window)
 //        self.window?.makeKeyAndOrderFront(nil)
 //    }
 //}
 
 #Preview {
-    CommandDetailView()
+    CommandDetailView(window: nil,
+                      commandConfig: Binding.constant(CommandConfig(name: "Command")),
+                      onSave: {})
 }

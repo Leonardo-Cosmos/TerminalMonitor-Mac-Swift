@@ -7,12 +7,12 @@
 
 import Foundation
 
-class CommandConfig: Identifiable {
+class CommandConfig: Identifiable, ObservableObject {
     
     let id = UUID()
     
     /// The name of command.
-    let name: String
+    var name: String
     
     var startFile: String?
     

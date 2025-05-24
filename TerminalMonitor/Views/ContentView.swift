@@ -9,35 +9,38 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    
+    @ObservedObject var appViewModel: AppViewModel
+    
+//    @Environment(\.modelContext) private var modelContext
+//    @Query private var items: [Item]
 
     var body: some View {
         NavigationSplitView {
-            CommandListView()
+            CommandListView(appViewModel: appViewModel)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
             Text("Select an item")
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
-    }
+//    private func addItem() {
+//        withAnimation {
+//            let newItem = Item(timestamp: Date())
+//            modelContext.insert(newItem)
+//        }
+//    }
+//
+//    private func deleteItems(offsets: IndexSet) {
+//        withAnimation {
+//            for index in offsets {
+//                modelContext.delete(items[index])
+//            }
+//        }
+//    }
 }
 
 #Preview {
-    ContentView()
+    ContentView(appViewModel: AppViewModel())
         .modelContainer(for: Item.self, inMemory: true)
 }
