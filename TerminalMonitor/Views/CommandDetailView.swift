@@ -56,7 +56,7 @@ class CommandDetailWindowController {
         
         var viewModel = CommandConfig(
             name: commandConfig.name.wrappedValue,
-            startFile: commandConfig.startFile.wrappedValue,
+            executableFile: commandConfig.executableFile.wrappedValue,
         )
         
         let view = CommandDetailView(window: window, commandConfig: Binding(
@@ -65,7 +65,7 @@ class CommandDetailWindowController {
         ), onSave: {
             // Update binding value of list view only when save button is clicked
             commandConfig.name.wrappedValue = viewModel.name
-            commandConfig.startFile.wrappedValue = viewModel.startFile
+            commandConfig.executableFile.wrappedValue = viewModel.executableFile
             
             onSave?()
         })

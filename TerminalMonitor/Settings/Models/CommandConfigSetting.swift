@@ -9,17 +9,17 @@ class CommandConfigSetting: Codable {
     
     let name: String
     
-    let startFile: String?
+    let executableFile: String?
     
     let arguments: String?
     
-    let workDirectory: String?
+    let currentDirectory: String?
     
-    init(name: String, startFile: String?, arguments: String?, workDirectory: String?) {
+    init(name: String, executableFile: String?, arguments: String?, currentDirectory: String?) {
         self.name = name
-        self.startFile = startFile
+        self.executableFile = executableFile
         self.arguments = arguments
-        self.workDirectory = workDirectory
+        self.currentDirectory = currentDirectory
     }
 }
 
@@ -33,9 +33,9 @@ class CommandConfigSettingHelper {
         
         return CommandConfigSetting(
             name: commandConfig.name,
-            startFile: commandConfig.startFile,
+            executableFile: commandConfig.executableFile,
             arguments: commandConfig.arguments,
-            workDirectory: commandConfig.workDirectory,
+            currentDirectory: commandConfig.currentDirectory,
         )
     }
     
@@ -47,9 +47,9 @@ class CommandConfigSettingHelper {
         
         return CommandConfig(
             name: setting.name,
-            startFile: setting.startFile,
+            executableFile: setting.executableFile,
             arguments: setting.arguments,
-            workDirectory: setting.workDirectory,
+            currentDirectory: setting.currentDirectory,
         )
     }
 }

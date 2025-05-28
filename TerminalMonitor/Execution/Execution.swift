@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 class Execution {
     
@@ -15,16 +16,62 @@ class Execution {
     
     private var started = false
     
+    private let startLock = NSLock()
+    
+    private(set) var completed = false
+    
     private var process: Process?
     
-    private var processTask: Task<Void, Error>?
+    let textPublisher = PassthroughSubject<String, Error>()
     
     init(commandConfig: CommandConfig) {
         self.id = UUID()
         self.commandConfig = commandConfig
     }
     
-    private func start(executableFilePath: String?, arguments: String?, currentDirPath: String?) {
+    func run() throws {
+        
+        startLock.lock()
+        if started {
+            startLock.unlock()
+            throw ExecutionError.alreadyStarted
+        }
+        
+        started = true
+        
+        Task {
+            do {
+                try self.run(executableFilePath: self.commandConfig.executableFile,
+                             arguments: self.commandConfig.arguments,
+                             currentDirPath: self.commandConfig.currentDirectory) {
+                    self.startLock.unlock()
+                }
+                process = nil
+                
+                self.textPublisher.send(completion: .finished)
+                self.completed = true
+                
+            } catch {
+                process = nil
+                
+                self.textPublisher.send(completion: .failure(error))
+                self.completed = true
+            }
+        }
+    }
+    
+    func terminate() throws {
+        startLock.lock()
+        if !started {
+            startLock.unlock()
+            throw ExecutionError.notStarted
+        }
+        startLock.unlock()
+        
+        process?.terminate()
+    }
+    
+    private func run(executableFilePath: String?, arguments: String?, currentDirPath: String?, onStarted: () -> Void) throws {
         
         guard let executableFilePath = executableFilePath else {
             return
@@ -54,7 +101,8 @@ class Execution {
         outputPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
             if let outputString = String(data: data, encoding: .utf8) {
-                print(outputString)
+                print("From process: \(outputString)")
+                self.textPublisher.send(outputString)
             }
         }
         
@@ -68,7 +116,8 @@ class Execution {
         errorPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
             if let outputString = String(data: data, encoding: .utf8) {
-                print(outputString)
+                print("From process: \(outputString)")
+                self.textPublisher.send(outputString)
             }
         }
         
@@ -76,13 +125,8 @@ class Execution {
             outputPipe.fileHandleForReading.readabilityHandler = nil
         }
         
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            print("Error running process: \(error)")
-        }
-        
+        try process.run()
+        onStarted()
+        process.waitUntilExit()
     }
-    
 }

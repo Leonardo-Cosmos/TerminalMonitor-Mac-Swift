@@ -38,6 +38,12 @@
         }
       }
     },
+    "It has been started already" : {
+      "comment" : "Error when start an execution that has been started already"
+    },
+    "It has not been started yet" : {
+      "comment" : "Error when terminate an execution that has not been started yet"
+    },
     "Name" : {
       "localizations" : {
         "en" : {
