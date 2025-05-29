@@ -24,7 +24,13 @@
         }
       }
     },
+    "Arguments" : {
+
+    },
     "Close Workspace" : {
+
+    },
+    "Command" : {
 
     },
     "Edit" : {
@@ -37,6 +43,9 @@
           }
         }
       }
+    },
+    "Exectuion" : {
+
     },
     "It has been started already" : {
       "comment" : "Error when start an execution that has been started already"
@@ -84,6 +93,15 @@
 
     },
     "Select an item" : {
+
+    },
+    "Start" : {
+
+    },
+    "Terminate" : {
+
+    },
+    "Working Directory" : {
 
     }
   },

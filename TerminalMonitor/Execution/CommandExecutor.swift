@@ -25,6 +25,8 @@ class CommandExecutor {
         let executionName: String
     }
     
+    static let shared = CommandExecutor()
+    
     private var executionNames: Set<String> = []
     
     private var executionNameDict: [UUID: String] = [:]
@@ -49,7 +51,7 @@ class CommandExecutor {
     
     private(set) var isCompleted = false
     
-    init() {
+    private init() {
         (executionTextAsyncStream, executionTextContinuation) = AsyncStream<ExecutionText>.makeStream()
         Task {
             await parseTerminalLine()
@@ -70,7 +72,7 @@ class CommandExecutor {
                 self.removeExecution(name: uniqueExecutionName, id: execution.id, error: error)
             }
             
-            Self.logger.info("Execution \(uniqueExecutionName) \(execution.id) is started")
+            Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) completed")
             
         }, receiveValue: { text in
             
@@ -83,7 +85,7 @@ class CommandExecutor {
         subscriptionDict[execution.id] = subscription
         addExecution(name: uniqueExecutionName, execution: execution)
         
-        Self.logger.info("Execution \(uniqueExecutionName) \(execution.id) is started")
+        Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) is started")
         Task {
             do {
                 try execution.run()
@@ -97,7 +99,7 @@ class CommandExecutor {
     func terminate(executionId: UUID) {
         
         guard let execution = executionDict[executionId] else {
-            Self.logger.log("Execution \(executionId) doesn't exist when terminate it")
+            Self.logger.log("Execution (id: \(executionId)) doesn't exist when terminate it")
             return
         }
         
@@ -139,6 +141,8 @@ class CommandExecutor {
     }
     
     private func removeExecution(name: String, id: UUID, error: Error? = nil) {
+        
+        subscriptionDict[id]?.cancel()
         
         executionNames.remove(name)
         executionNameDict[id] = nil
@@ -192,12 +196,11 @@ class CommandExecutor {
     }
     
     private func onExecutionRemoved(name: String, id: UUID, error: Error?) {
-        
         let status: ExecutionStatus = error == nil ? .finished : .failed
         let executionInfo = ExecutionInfo(
             id: id,
             name: name,
-            status: .started
+            status: status
         )
         executionExitedHandler?(executionInfo, error)
     }

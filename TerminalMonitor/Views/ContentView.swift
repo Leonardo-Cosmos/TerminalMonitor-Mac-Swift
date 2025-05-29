@@ -7,8 +7,14 @@
 
 import SwiftUI
 import SwiftData
+import os
 
 struct ContentView: View {
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Self.self)
+    )
     
     @ObservedObject var appViewModel: AppViewModel
     
@@ -17,10 +23,47 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            CommandListView(appViewModel: appViewModel)
+            SidebarView(appViewModel: appViewModel)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
             Text("Select an item")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .commandStartingEvent)) { notification in
+            if let commandConfig = notification.userInfo?[NotificationUserInfoKey.command] as? CommandConfig {
+                CommandExecutor.shared.execute(commandConfig: commandConfig)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.commandStartingEvent.rawValue)")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .executionTerminatingEvent)) { notification in
+            if let executionId = notification.userInfo?[NotificationUserInfoKey.id] as? UUID {
+                CommandExecutor.shared.terminate(executionId: executionId)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.executionTerminatingEvent.rawValue)")
+            }
+        }
+        .onAppear {
+            CommandExecutor.shared.executionStartedHandler = { executionInfo, _ in
+                Task { @MainActor in
+                    NotificationCenter.default.post(
+                        name: .executionStartedEvent,
+                        object: nil,
+                        userInfo: [NotificationUserInfoKey.execution: executionInfo]
+                    )
+                }
+            }
+            CommandExecutor.shared.executionExitedHandler = { executionInfo, error in
+                Task { @MainActor in
+                    NotificationCenter.default.post(
+                        name: .executionExitedEvent,
+                        object: nil,
+                        userInfo: [
+                            NotificationUserInfoKey.execution: executionInfo,
+                            NotificationUserInfoKey.error: error as Any
+                        ]
+                    )
+                }
+            }
         }
     }
 

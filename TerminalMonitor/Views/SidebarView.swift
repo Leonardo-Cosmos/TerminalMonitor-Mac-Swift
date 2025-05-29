@@ -8,13 +8,22 @@
 import SwiftUI
 
 struct SidebarView: View {
+    
+    @ObservedObject var appViewModel: AppViewModel
+    
     var body: some View {
         VStack {
+            Section("Command") {
+                CommandListView(appViewModel: appViewModel)
+            }
             
+            Section("Exectuion") {
+                ExecutionListView()
+            }
         }
     }
 }
 
 #Preview {
-    SidebarView()
+    SidebarView(appViewModel: AppViewModel())
 }

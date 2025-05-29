@@ -5,9 +5,13 @@
 //  Created on 2025/5/21.
 //
 
+import Foundation
+
 class CommandConfigSetting: Codable {
     
-    let name: String
+    let id: String?
+    
+    let name: String?
     
     let executableFile: String?
     
@@ -15,7 +19,8 @@ class CommandConfigSetting: Codable {
     
     let currentDirectory: String?
     
-    init(name: String, executableFile: String?, arguments: String?, currentDirectory: String?) {
+    init(id: String?, name: String?, executableFile: String?, arguments: String?, currentDirectory: String?) {
+        self.id = id
         self.name = name
         self.executableFile = executableFile
         self.arguments = arguments
@@ -32,6 +37,7 @@ class CommandConfigSettingHelper {
         }
         
         return CommandConfigSetting(
+            id: commandConfig.id.uuidString,
             name: commandConfig.name,
             executableFile: commandConfig.executableFile,
             arguments: commandConfig.arguments,
@@ -46,7 +52,8 @@ class CommandConfigSettingHelper {
         }
         
         return CommandConfig(
-            name: setting.name,
+            id: UUID(uuidString: setting.id ?? "") ?? UUID(),
+            name: setting.name ?? "?",
             executableFile: setting.executableFile,
             arguments: setting.arguments,
             currentDirectory: setting.currentDirectory,

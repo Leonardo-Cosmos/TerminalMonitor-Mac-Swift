@@ -11,15 +11,24 @@ struct CommandDetailView: View {
     
     var window: NSWindow?
     
-    @Binding var commandConfig: CommandConfig
+    @Binding var viewModel: CommandDetailViewModel
     
     var onSave: (() -> Void)?
     
     var body: some View {
         VStack {
-            TextField("Name", text: $commandConfig.name)
+            TextField("Name", text: $viewModel.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
+            
+            TextField("Command", text: $viewModel.executableFile)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Arguments", text: $viewModel.arguments)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Working Directory", text: $viewModel.currentDirectory)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
             
             Button("Save") {
                 onSave?()
@@ -27,6 +36,33 @@ struct CommandDetailView: View {
             }
             .padding()
         }
+    }
+}
+
+class CommandDetailViewModel: ObservableObject {
+    
+    var name: String
+    
+    var executableFile: String
+    
+    var arguments: String
+    
+    var currentDirectory: String
+    
+    init(name: String, executableFile: String, arguments: String, currentDirectory: String) {
+        self.name = name
+        self.executableFile = executableFile
+        self.arguments = arguments
+        self.currentDirectory = currentDirectory
+    }
+    
+    convenience init(name: String) {
+        self.init(
+            name: name,
+            executableFile: "",
+            arguments: "",
+            currentDirectory: ""
+        )
     }
 }
 
@@ -54,18 +90,22 @@ class CommandDetailWindowController {
             defer: false
         )
         
-        var viewModel = CommandConfig(
+        var viewModel = CommandDetailViewModel(
             name: commandConfig.name.wrappedValue,
-            executableFile: commandConfig.executableFile.wrappedValue,
+            executableFile: commandConfig.executableFile.wrappedValue ?? "",
+            arguments: commandConfig.arguments.wrappedValue ?? "",
+            currentDirectory: commandConfig.currentDirectory.wrappedValue ?? ""
         )
         
-        let view = CommandDetailView(window: window, commandConfig: Binding(
+        let view = CommandDetailView(window: window, viewModel: Binding(
             get: { viewModel },
             set: { viewModel = $0 }
         ), onSave: {
             // Update binding value of list view only when save button is clicked
             commandConfig.name.wrappedValue = viewModel.name
-            commandConfig.executableFile.wrappedValue = viewModel.executableFile
+            commandConfig.executableFile.wrappedValue = viewModel.executableFile.isEmpty ? nil : viewModel.executableFile
+            commandConfig.arguments.wrappedValue = viewModel.arguments.isEmpty ? nil : viewModel.arguments
+            commandConfig.currentDirectory.wrappedValue = viewModel.currentDirectory.isEmpty ? nil : viewModel.currentDirectory
             
             onSave?()
         })
@@ -96,6 +136,6 @@ class CommandDetailWindowController {
 
 #Preview {
     CommandDetailView(window: nil,
-                      commandConfig: Binding.constant(CommandConfig(name: "Command")),
+                      viewModel: Binding.constant(CommandDetailViewModel(name: "Command")),
                       onSave: {})
 }

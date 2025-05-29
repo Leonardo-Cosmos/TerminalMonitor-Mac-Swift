@@ -9,13 +9,13 @@ import SwiftUI
 
 struct CommandListView: View {
     
+    typealias CommandEventHandler = (CommandConfig) -> Void
+    
     @ObservedObject var appViewModel: AppViewModel
     
     @EnvironmentObject private var workspaceConfig: WorkspaceConfig
     
-    @State private var commands: [CommandConfig] = [
-        CommandConfig(name: "1")
-    ]
+    var commandStartedHandler: CommandEventHandler?
     
     var body: some View {
         List($workspaceConfig.commands, id: \.id) { $command in
@@ -32,6 +32,15 @@ struct CommandListView: View {
                 
                 Button("Remove", systemImage: "minus") {
                     workspaceConfig.delete(id: command.id)
+                }
+                .labelStyle(.iconOnly)
+                
+                Button("Start", systemImage: "play") {
+                    NotificationCenter.default.post(
+                        name: .commandStartingEvent,
+                        object: nil,
+                        userInfo: [NotificationUserInfoKey.command: command]
+                    )
                 }
                 .labelStyle(.iconOnly)
             }
@@ -59,9 +68,9 @@ struct CommandListView: View {
 func previewWorkspaceConfig() -> WorkspaceConfig {
     let workspaceConfig = WorkspaceConfig()
     workspaceConfig.commands = [
-        CommandConfig(name: "a"),
-        CommandConfig(name: "b"),
-        CommandConfig(name: "c"),
+        CommandConfig(name: "Console"),
+        CommandConfig(name: "Application"),
+        CommandConfig(name: "Tool"),
     ]
     return workspaceConfig
 }

@@ -24,7 +24,7 @@ struct TerminalMonitorApp: App {
     
     @State private var workspaceUrl: URL?
     
-    private var workspaceConfig = WorkspaceConfig()
+    private let workspaceConfig = WorkspaceConfig()
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
