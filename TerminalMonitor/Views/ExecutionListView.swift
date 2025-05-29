@@ -59,30 +59,14 @@ struct ExecutionListView: View {
     }
 }
 
-struct ExecutionDropDelegate: DropDelegate {
+fileprivate class ExecutionDropDelegate: ListItemDropDelegate<ExecutionInfo, UUID> {
     
-    let item: ExecutionInfo
-    @Binding var items: [ExecutionInfo]
+    convenience init(item: ExecutionInfo, items: Binding<[ExecutionInfo]>) {
+        self.init(id: \.id, item: item, items: items)
+    }
     
-    func performDrop(info: DropInfo) -> Bool {
-        guard let itemProvider = info.itemProviders(for: [.text]).first else {
-            return false
-        }
-        
-        itemProvider.loadObject(ofClass: NSString.self) { object, error in
-            if let uuid = UUID(uuidString: object as? String ?? "") {
-                let sourceIndex = items.firstIndex(where: { $0.id ==  uuid })
-                
-                if let sourceIndex = sourceIndex {
-                    if let destinationIndex = items.firstIndex(where: { $0.id == self.item.id }) {
-                        let movedItem = items.remove(at: sourceIndex)
-                        items.insert(movedItem, at: destinationIndex)
-                    }
-                }
-            }
-        }
-        
-        return true
+    override func id(from provider: (any NSItemProviderReading)?) -> UUID? {
+        UUID(uuidString: provider as? String ?? "")
     }
 }
 

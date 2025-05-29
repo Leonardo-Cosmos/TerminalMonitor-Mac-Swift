@@ -9,15 +9,15 @@ import SwiftUI
 
 class ListItemDropDelegate<Item, ID>: DropDelegate where ID: Equatable {
     
-    let item: Item
+    let id: KeyPath<Item, ID>
     
-    let idKeyPath: KeyPath<Item, ID>
+    let item: Item
     
     let items: Binding<[Item]>
     
-    init(item: Item, idKeyPath: KeyPath<Item, ID>, items: Binding<[Item]>) {
+    init(id: KeyPath<Item, ID>, item: Item, items: Binding<[Item]>) {
+        self.id = id
         self.item = item
-        self.idKeyPath = idKeyPath
         self.items = items
     }
     
@@ -32,11 +32,11 @@ class ListItemDropDelegate<Item, ID>: DropDelegate where ID: Equatable {
         
         itemProvider.loadObject(ofClass: NSString.self) { object, error in
             if let sourceId = self.id(from: object) {
-                let sourceIndex = self.items.wrappedValue.firstIndex(where: { $0[keyPath: self.idKeyPath] ==  sourceId })
+                let sourceIndex = self.items.wrappedValue.firstIndex(where: { $0[keyPath: self.id] ==  sourceId })
                 
                 if let sourceIndex = sourceIndex {
                     let destinationIndex = self.items.wrappedValue.firstIndex {
-                        $0[keyPath: self.idKeyPath] == self.item[keyPath: self.idKeyPath]
+                        $0[keyPath: self.id] == self.item[keyPath: self.id]
                     }
                     
                     if let destinationIndex = destinationIndex {

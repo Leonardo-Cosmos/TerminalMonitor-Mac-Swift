@@ -47,12 +47,16 @@ struct CommandListView: View {
             .onDrag {
                 NSItemProvider(object: command.id.uuidString as NSString)
             }
-            .onDrop(of: [.text], delegate: CommandDropDelegate(item: command, idKeyPath: \.id, items: $workspaceConfig.commands))
+            .onDrop(of: [.text], delegate: CommandDropDelegate(item: command, items: $workspaceConfig.commands))
         }
     }
 }
 
-class CommandDropDelegate: ListItemDropDelegate<CommandConfig, UUID> {
+fileprivate class CommandDropDelegate: ListItemDropDelegate<CommandConfig, UUID> {
+    
+    convenience init(item: CommandConfig, items: Binding<[CommandConfig]>) {
+        self.init(id: \.id, item: item, items: items)
+    }
     
     override func id(from provider: (any NSItemProviderReading)?) -> UUID? {
         UUID(uuidString: provider as? String ?? "")
