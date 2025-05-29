@@ -16,7 +16,7 @@ struct ExecutionListView: View {
     @State private var errorMessage = ""
     
     var body: some View {
-        List(executions, id: \.id) { execution in
+        ForEach(executions, id: \.id) { execution in
             HStack {
                 Text(execution.name)
                     .frame(alignment: .leading)
@@ -32,6 +32,10 @@ struct ExecutionListView: View {
                 }
                 .labelStyle(.iconOnly)
             }
+            .onDrag {
+                NSItemProvider(object: execution.id.uuidString as NSString)
+            }
+            .onDrop(of: [.text], delegate: ExecutionDropDelegate(item: execution, items: $executions))
         }
         .onReceive(NotificationCenter.default.publisher(for: .executionStartedEvent)) { notification in
             if let execution = notification.userInfo?[NotificationUserInfoKey.execution] as? ExecutionInfo {
@@ -52,6 +56,33 @@ struct ExecutionListView: View {
             Text(errorMessage)
                 .padding()
         }
+    }
+}
+
+struct ExecutionDropDelegate: DropDelegate {
+    
+    let item: ExecutionInfo
+    @Binding var items: [ExecutionInfo]
+    
+    func performDrop(info: DropInfo) -> Bool {
+        guard let itemProvider = info.itemProviders(for: [.text]).first else {
+            return false
+        }
+        
+        itemProvider.loadObject(ofClass: NSString.self) { object, error in
+            if let uuid = UUID(uuidString: object as? String ?? "") {
+                let sourceIndex = items.firstIndex(where: { $0.id ==  uuid })
+                
+                if let sourceIndex = sourceIndex {
+                    if let destinationIndex = items.firstIndex(where: { $0.id == self.item.id }) {
+                        let movedItem = items.remove(at: sourceIndex)
+                        items.insert(movedItem, at: destinationIndex)
+                    }
+                }
+            }
+        }
+        
+        return true
     }
 }
 

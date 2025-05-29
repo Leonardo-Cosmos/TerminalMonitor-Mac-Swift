@@ -101,7 +101,6 @@ class Execution {
         outputPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
             if let outputString = String(data: data, encoding: .utf8) {
-                print("From process: \(outputString)")
                 self.textPublisher.send(outputString)
             }
         }
@@ -116,7 +115,6 @@ class Execution {
         errorPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
             if let outputString = String(data: data, encoding: .utf8) {
-                print("From process: \(outputString)")
                 self.textPublisher.send(outputString)
             }
         }

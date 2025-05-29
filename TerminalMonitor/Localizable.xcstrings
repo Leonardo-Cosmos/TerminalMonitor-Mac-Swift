@@ -27,6 +27,9 @@
     "Arguments" : {
 
     },
+    "Clear" : {
+
+    },
     "Close Workspace" : {
 
     },
@@ -90,9 +93,6 @@
       }
     },
     "Save Workspace" : {
-
-    },
-    "Select an item" : {
 
     },
     "Start" : {

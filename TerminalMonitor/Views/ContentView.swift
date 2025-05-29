@@ -16,6 +16,8 @@ struct ContentView: View {
         category: String(describing: Self.self)
     )
     
+    @State private var executor: Executor = CommandExecutor.shared
+    
     @ObservedObject var appViewModel: AppViewModel
     
 //    @Environment(\.modelContext) private var modelContext
@@ -26,24 +28,24 @@ struct ContentView: View {
             SidebarView(appViewModel: appViewModel)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
-            Text("Select an item")
+            TerminalView()
         }
         .onReceive(NotificationCenter.default.publisher(for: .commandStartingEvent)) { notification in
             if let commandConfig = notification.userInfo?[NotificationUserInfoKey.command] as? CommandConfig {
-                CommandExecutor.shared.execute(commandConfig: commandConfig)
+                executor.execute(commandConfig: commandConfig)
             } else {
                 Self.logger.error("Missing userInfo in \(Notification.Name.commandStartingEvent.rawValue)")
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .executionTerminatingEvent)) { notification in
             if let executionId = notification.userInfo?[NotificationUserInfoKey.id] as? UUID {
-                CommandExecutor.shared.terminate(executionId: executionId)
+                executor.terminate(executionId: executionId)
             } else {
                 Self.logger.error("Missing userInfo in \(Notification.Name.executionTerminatingEvent.rawValue)")
             }
         }
         .onAppear {
-            CommandExecutor.shared.executionStartedHandler = { executionInfo, _ in
+            executor.executionStartedHandler = { executionInfo, _ in
                 Task { @MainActor in
                     NotificationCenter.default.post(
                         name: .executionStartedEvent,
@@ -52,7 +54,7 @@ struct ContentView: View {
                     )
                 }
             }
-            CommandExecutor.shared.executionExitedHandler = { executionInfo, error in
+            executor.executionExitedHandler = { executionInfo, error in
                 Task { @MainActor in
                     NotificationCenter.default.post(
                         name: .executionExitedEvent,
@@ -86,4 +88,5 @@ struct ContentView: View {
 #Preview {
     ContentView(appViewModel: AppViewModel())
         .modelContainer(for: Item.self, inMemory: true)
+        .environmentObject(WorkspaceConfig())
 }

@@ -9,11 +9,7 @@ import Foundation
 import Combine
 import os
 
-class CommandExecutor {
-    
-    typealias ExecutionInfoHandler = (ExecutionInfo, Error?) -> Void
-    
-    typealias ExecutorEventHandler = () -> Void
+class CommandExecutor: Executor, TerminalLineProducer {
     
     private static let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier!,
@@ -124,6 +120,17 @@ class CommandExecutor {
     func shutdown() {
         terminateAll()
         executionTextContinuation.finish()
+    }
+    
+    func readTerminalLines() async -> [TerminalLine] {
+        
+        var terminalLines: [TerminalLine] = []
+        while await !terminalLineQueue.isEmpty() {
+            if let terminalLine = await terminalLineQueue.dequeue() {
+                terminalLines.append(terminalLine)
+            }
+        }
+        return terminalLines
     }
     
     private func addExecution(name: String, execution: Execution) {

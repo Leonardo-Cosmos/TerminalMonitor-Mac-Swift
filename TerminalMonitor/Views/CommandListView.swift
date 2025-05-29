@@ -18,7 +18,7 @@ struct CommandListView: View {
     var commandStartedHandler: CommandEventHandler?
     
     var body: some View {
-        List($workspaceConfig.commands, id: \.id) { $command in
+        ForEach($workspaceConfig.commands, id: \.id) { $command in
             HStack {
                 Text(command.name)
                     .frame(alignment: .leading)
@@ -44,19 +44,18 @@ struct CommandListView: View {
                 }
                 .labelStyle(.iconOnly)
             }
-        }
-        .toolbar {
-            Button("Add", systemImage: "plus") {
-                var commandConfig = CommandConfig(name: "")
-                CommandDetailWindowController.openWindow(for: Binding(
-                    get: { commandConfig },
-                    set: { commandConfig = $0 }
-                )) {
-                    workspaceConfig.append(commandConfig)
-                }
+            .onDrag {
+                NSItemProvider(object: command.id.uuidString as NSString)
             }
+            .onDrop(of: [.text], delegate: CommandDropDelegate(item: command, idKeyPath: \.id, items: $workspaceConfig.commands))
         }
-        .disabled(!appViewModel.workspaceLoaded)
+    }
+}
+
+class CommandDropDelegate: ListItemDropDelegate<CommandConfig, UUID> {
+    
+    override func id(from provider: (any NSItemProviderReading)?) -> UUID? {
+        UUID(uuidString: provider as? String ?? "")
     }
 }
 
