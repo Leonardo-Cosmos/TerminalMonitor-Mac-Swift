@@ -28,7 +28,7 @@ struct TerminalView: View {
             }
         }
         .toolbar {
-            Button("Clear", systemImage: "xmark.bin") {
+            Button("Clear", systemImage: "trash") {
                 shownLines.removeAll()
             }
             .labelStyle(.iconOnly)

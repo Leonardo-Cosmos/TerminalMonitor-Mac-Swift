@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ExecutionListView: View {
     
+    @Binding var selection: UUID?
+    
     @State var executions: [ExecutionInfo] = []
     
     @State private var showError = false
@@ -17,25 +19,22 @@ struct ExecutionListView: View {
     
     var body: some View {
         ForEach(executions, id: \.id) { execution in
-            HStack {
-                Text(execution.name)
-                    .frame(alignment: .leading)
-                
-                Spacer()
-                
-                Button("Terminate", systemImage: "stop") {
-                    NotificationCenter.default.post(
-                        name: .executionTerminatingEvent,
-                        object: nil,
-                        userInfo: [NotificationUserInfoKey.id: execution.id]
-                    )
-                }
-                .labelStyle(.iconOnly)
+            NavigationLink(value: execution.id) {
+                ExecutionListViewItem(execution: execution)
+            }
+            .onTapGesture(count: 1) {
+                selection = execution.id
             }
             .onDrag {
                 NSItemProvider(object: execution.id.uuidString as NSString)
             }
             .onDrop(of: [.text], delegate: ExecutionDropDelegate(item: execution, items: $executions))
+            .contextMenu {
+                Button("Terminate", systemImage: "stop") {
+                    ExecutionListViewHelper.terminateExecution(executionId: execution.id)
+                }
+                .labelStyle(.titleAndIcon)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .executionStartedEvent)) { notification in
             if let execution = notification.userInfo?[NotificationUserInfoKey.execution] as? ExecutionInfo {
@@ -59,21 +58,52 @@ struct ExecutionListView: View {
     }
 }
 
+struct ExecutionListViewItem: View {
+    
+    @State var execution: ExecutionInfo
+    
+    var body: some View {
+        HStack {
+            Text(execution.name)
+                .frame(alignment: .leading)
+            
+            Spacer()
+            
+            Button("Terminate", systemImage: "stop") {
+                ExecutionListViewHelper.terminateExecution(executionId: execution.id)
+            }
+            .labelStyle(.iconOnly)
+        }
+    }
+}
+
+struct ExecutionListViewHelper {
+    
+    static func terminateExecution(executionId: UUID) {
+        NotificationCenter.default.post(
+            name: .executionTerminatingEvent,
+            object: nil,
+            userInfo: [NotificationUserInfoKey.id: executionId]
+        )
+    }
+}
+
 fileprivate class ExecutionDropDelegate: ListItemDropDelegate<ExecutionInfo, UUID> {
     
     convenience init(item: ExecutionInfo, items: Binding<[ExecutionInfo]>) {
-        self.init(id: \.id, item: item, items: items)
-    }
-    
-    override func id(from provider: (any NSItemProviderReading)?) -> UUID? {
-        UUID(uuidString: provider as? String ?? "")
+        self.init(id: \.id, item: item, items: items) { provider in
+            UUID(uuidString: provider as? String ?? "")
+        }
     }
 }
 
 #Preview {
-    ExecutionListView(executions: [
-        ExecutionInfo(id: UUID(), name: "Console", status: .started),
-        ExecutionInfo(id: UUID(), name: "Application", status: .started),
-        ExecutionInfo(id: UUID(), name: "Tool", status: .started),
-    ])
+    ExecutionListView(
+        selection: Binding.constant(UUID()),
+        executions: [
+            ExecutionInfo(id: UUID(), name: "Console", status: .started),
+            ExecutionInfo(id: UUID(), name: "Application", status: .started),
+            ExecutionInfo(id: UUID(), name: "Tool", status: .started),
+        ]
+    )
 }

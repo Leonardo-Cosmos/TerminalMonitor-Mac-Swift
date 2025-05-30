@@ -15,6 +15,10 @@ protocol Executor {
     
     func terminate(executionId: UUID)
     
+    func terminateAll()
+    
+    func shutdown()
+    
     var executionStartedHandler: ExecutionInfoHandler? { get set }
     
     var executionExitedHandler: ExecutionInfoHandler? { get set }

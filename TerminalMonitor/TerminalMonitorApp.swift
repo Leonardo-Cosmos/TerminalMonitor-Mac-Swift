@@ -17,6 +17,8 @@ struct TerminalMonitorApp: App {
         category: String(describing: Self.self)
     )
     
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @AppStorage("workspace")
     private var workspaceBookmark: String?
     
@@ -24,7 +26,9 @@ struct TerminalMonitorApp: App {
     
     @State private var workspaceUrl: URL?
     
-    private let workspaceConfig = WorkspaceConfig()
+    @State private var workspaceConfig = WorkspaceConfig()
+    
+    @State private var executor: Executor = CommandExecutor.shared
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -77,6 +81,17 @@ struct TerminalMonitorApp: App {
     }
     
     private func loadWorkspace() {
+        Self.logger.debug("Loading workspace")
+        
+        appDelegate.applicationTerminationHandler = {
+            
+            executor.shutdown()
+            
+            if viewModel.workspaceLoaded {
+                saveWorkspace()
+            }
+        }
+        
         guard let workspaceBookmark = workspaceBookmark else {
             return
         }
@@ -103,6 +118,8 @@ struct TerminalMonitorApp: App {
                 
                 viewModel.workspaceLoaded = true
                 
+                Self.logger.debug("Loaded workspace")
+                
             } catch {
                 Self.logger.error("Cannot read existing workspace setting. \(error)")
                 viewModel.workspaceError = "Cannot read existing workspace setting"
@@ -113,6 +130,8 @@ struct TerminalMonitorApp: App {
     }
     
     private func createWorkspace() {
+        Self.logger.debug("Create workspace")
+        
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
         panel.canCreateDirectories = true
@@ -138,6 +157,9 @@ struct TerminalMonitorApp: App {
             
             do {
                 workspaceBookmark = try url.bookmarkData().base64EncodedString()
+                
+                Self.logger.debug("Created workspace")
+                
             } catch {
                 Self.logger.error("Cannot save workspace URL bookmark. \(error)")
                 viewModel.workspaceError = "Cannot save workspace URL bookmark"
@@ -146,6 +168,8 @@ struct TerminalMonitorApp: App {
     }
     
     private func openWorkspace() {
+        Self.logger.debug("Opening workspace")
+        
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.json]
@@ -175,6 +199,8 @@ struct TerminalMonitorApp: App {
                 workspaceUrl = url
                 viewModel.workspaceLoaded = true
                 
+                Self.logger.debug("Opened workspace")
+                
             } catch {
                 Self.logger.error("Cannot open workspace setting. \(error)")
                 viewModel.workspaceError = "Cannot open workspace setting"
@@ -183,6 +209,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func saveWorkspace() {
+        Self.logger.debug("Saving workspace")
         
         guard let workspaceUrl = workspaceUrl else {
             return
@@ -191,6 +218,8 @@ struct TerminalMonitorApp: App {
         do {
             try writeWorkspaceFile(url: workspaceUrl)
             
+            Self.logger.debug("Saved workspace")
+            
         } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")
             viewModel.workspaceError = "Cannot save workspace setting"
@@ -198,9 +227,9 @@ struct TerminalMonitorApp: App {
     }
     
     private func closeWorkspace() {
+        Self.logger.debug("Closing workspace")
         
-        // TODO
-        // Terminate all running commands.
+        executor.shutdown()
         
         guard let workspaceUrl = workspaceUrl else {
             return
@@ -214,6 +243,8 @@ struct TerminalMonitorApp: App {
             
             self.workspaceUrl = nil
             workspaceBookmark = nil
+            
+            Self.logger.debug("Closed workspace")
             
         } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")
@@ -251,4 +282,23 @@ class AppViewModel: ObservableObject {
     @Published var workspaceLoaded = false
     
     @Published var workspaceError: String?
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: AppDelegate.self)
+    )
+    
+    var applicationTerminationHandler: (() -> Void)?
+    
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return true
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        Self.logger.debug("Application will terminate")
+        applicationTerminationHandler?()
+    }
 }

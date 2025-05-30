@@ -24,6 +24,9 @@
         }
       }
     },
+    "Add Command" : {
+
+    },
     "Arguments" : {
 
     },
@@ -47,7 +50,7 @@
         }
       }
     },
-    "Exectuion" : {
+    "Execution" : {
 
     },
     "It has been started already" : {
@@ -82,6 +85,9 @@
         }
       }
     },
+    "Run" : {
+
+    },
     "Save" : {
       "localizations" : {
         "en" : {
@@ -93,9 +99,6 @@
       }
     },
     "Save Workspace" : {
-
-    },
-    "Start" : {
 
     },
     "Terminate" : {
