@@ -81,7 +81,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func loadWorkspace() {
-        Self.logger.debug("Loading workspace")
+        Self.logger.info("Loading workspace")
         
         appDelegate.applicationTerminationHandler = {
             
@@ -118,7 +118,7 @@ struct TerminalMonitorApp: App {
                 
                 viewModel.workspaceLoaded = true
                 
-                Self.logger.debug("Loaded workspace")
+                Self.logger.info("Loaded workspace")
                 
             } catch {
                 Self.logger.error("Cannot read existing workspace setting. \(error)")
@@ -130,7 +130,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func createWorkspace() {
-        Self.logger.debug("Create workspace")
+        Self.logger.info("Creating workspace")
         
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
@@ -158,7 +158,7 @@ struct TerminalMonitorApp: App {
             do {
                 workspaceBookmark = try url.bookmarkData().base64EncodedString()
                 
-                Self.logger.debug("Created workspace")
+                Self.logger.info("Created workspace")
                 
             } catch {
                 Self.logger.error("Cannot save workspace URL bookmark. \(error)")
@@ -168,7 +168,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func openWorkspace() {
-        Self.logger.debug("Opening workspace")
+        Self.logger.info("Opening workspace")
         
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
@@ -199,7 +199,7 @@ struct TerminalMonitorApp: App {
                 workspaceUrl = url
                 viewModel.workspaceLoaded = true
                 
-                Self.logger.debug("Opened workspace")
+                Self.logger.info("Opened workspace")
                 
             } catch {
                 Self.logger.error("Cannot open workspace setting. \(error)")
@@ -209,7 +209,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func saveWorkspace() {
-        Self.logger.debug("Saving workspace")
+        Self.logger.info("Saving workspace")
         
         guard let workspaceUrl = workspaceUrl else {
             return
@@ -218,7 +218,7 @@ struct TerminalMonitorApp: App {
         do {
             try writeWorkspaceFile(url: workspaceUrl)
             
-            Self.logger.debug("Saved workspace")
+            Self.logger.info("Saved workspace")
             
         } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")
@@ -227,7 +227,7 @@ struct TerminalMonitorApp: App {
     }
     
     private func closeWorkspace() {
-        Self.logger.debug("Closing workspace")
+        Self.logger.info("Closing workspace")
         
         executor.shutdown()
         
@@ -244,7 +244,7 @@ struct TerminalMonitorApp: App {
             self.workspaceUrl = nil
             workspaceBookmark = nil
             
-            Self.logger.debug("Closed workspace")
+            Self.logger.info("Closed workspace")
             
         } catch {
             Self.logger.error("Cannot save workspace setting. \(error)")

@@ -7,8 +7,14 @@
 
 import Foundation
 import Combine
+import os
 
 class Execution {
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Execution.self)
+    )
     
     let id: UUID
     
@@ -31,6 +37,8 @@ class Execution {
     
     func run() throws {
         
+        Self.logger.debug("Execution (id: \(self.id)) is started")
+        
         startLock.lock()
         if started {
             startLock.unlock()
@@ -43,24 +51,18 @@ class Execution {
             do {
                 try self.run(executableFilePath: self.commandConfig.executableFile,
                              arguments: self.commandConfig.arguments,
-                             currentDirPath: self.commandConfig.currentDirectory) {
-                    self.startLock.unlock()
-                }
-                process = nil
-                
-                self.textPublisher.send(completion: .finished)
-                self.completed = true
-                
+                             currentDirPath: self.commandConfig.currentDirectory,
+                             startLock: self.startLock)
             } catch {
-                process = nil
-                
-                self.textPublisher.send(completion: .failure(error))
-                self.completed = true
+                onCompleted(error: error)
             }
         }
     }
     
     func terminate() throws {
+        
+        Self.logger.debug("Execution (id: \(self.id)) is terminated")
+        
         startLock.lock()
         if !started {
             startLock.unlock()
@@ -71,15 +73,21 @@ class Execution {
         process?.terminate()
     }
     
-    private func run(executableFilePath: String?, arguments: String?, currentDirPath: String?, onStarted: () -> Void) throws {
+    private func run(executableFilePath: String?, arguments: String?, currentDirPath: String?, startLock: NSLock) throws {
+        
+        defer {
+            startLock.unlock()
+        }
         
         guard let executableFilePath = executableFilePath else {
+            onCompleted()
             return
         }
         
         process = Process()
         
         guard let process = process else {
+            onCompleted()
             return
         }
         
@@ -105,10 +113,6 @@ class Execution {
             }
         }
         
-        defer {
-            outputPipe.fileHandleForReading.readabilityHandler = nil
-        }
-        
         let errorPipe = Pipe()
         process.standardError = errorPipe
         
@@ -119,12 +123,30 @@ class Execution {
             }
         }
         
-        defer {
+        process.terminationHandler = { process in
+            
             outputPipe.fileHandleForReading.readabilityHandler = nil
+            errorPipe.fileHandleForReading.readabilityHandler = nil
+            
+            self.onCompleted()
         }
         
         try process.run()
-        onStarted()
-        process.waitUntilExit()
+        Self.logger.debug("Execution \(self.id) is running")
+        
+        // process.waitUntilExit()
+    }
+    
+    private func onCompleted(error: Error? = nil) {
+        
+        process = nil
+        
+        if let error = error {
+            textPublisher.send(completion: .failure(error))
+        } else {
+            textPublisher.send(completion: .finished)
+        }
+        
+        self.completed = true
     }
 }

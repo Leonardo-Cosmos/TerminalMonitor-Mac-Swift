@@ -7,15 +7,15 @@
 
 import Foundation
 
-actor ConcurrentQueue<T> {
+actor ConcurrentQueue<Element> {
     
-    private var queue: [T] = []
+    private var queue: [Element] = []
     
-    func enqueue(_ element: T) {
+    func enqueue(_ element: Element) {
         queue.append(element)
     }
     
-    func dequeue() -> T? {
+    func dequeue() -> Element? {
         guard !queue.isEmpty else {
             return nil
         }

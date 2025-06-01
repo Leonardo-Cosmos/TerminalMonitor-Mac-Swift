@@ -31,9 +31,7 @@ class CommandExecutor: Executor, TerminalLineProducer {
     
     private var subscriptionDict: [UUID: AnyCancellable] = [:]
     
-    private var executionTextAsyncStream: AsyncStream<ExecutionText>
-    
-    private var executionTextContinuation: AsyncStream<ExecutionText>.Continuation
+    private var executionTextBlockingQueue = BlockingQueue<ExecutionText>()
     
     private var terminalLineQueue = ConcurrentQueue<TerminalLine>()
     
@@ -48,13 +46,14 @@ class CommandExecutor: Executor, TerminalLineProducer {
     private(set) var isCompleted = false
     
     private init() {
-        (executionTextAsyncStream, executionTextContinuation) = AsyncStream<ExecutionText>.makeStream()
-        Task {
+        Task(priority: .background) {
             await parseTerminalLine()
         }
     }
     
     func execute(commandConfig: CommandConfig) {
+        
+        Self.logger.info("Executing command (name: \(commandConfig.name), id: \(commandConfig.id)")
         
         let execution = Execution(commandConfig: commandConfig)
         let uniqueExecutionName = uniqueExecutionName(configName: commandConfig.name)
@@ -71,20 +70,20 @@ class CommandExecutor: Executor, TerminalLineProducer {
             Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) completed")
             
         }, receiveValue: { text in
-            
             let executionText = ExecutionText(text: text, executionName: uniqueExecutionName)
-            Task {
-                self.executionTextContinuation.yield(executionText)
+            Task(priority: .background) {
+                await self.executionTextBlockingQueue.yield(executionText)
             }
         })
         
         subscriptionDict[execution.id] = subscription
         addExecution(name: uniqueExecutionName, execution: execution)
         
-        Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) is started")
-        Task {
+        Task(priority: .userInitiated) {
             do {
                 try execution.run()
+                Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) is started")
+                
             } catch {
                 Self.logger.error("Error when start execution \(uniqueExecutionName) \(execution.id). \(error)")
                 removeExecution(name: uniqueExecutionName, id: execution.id, error: error)
@@ -101,7 +100,9 @@ class CommandExecutor: Executor, TerminalLineProducer {
         
         let executionName = executionNameDict[executionId]!
         
-        Task {
+        Self.logger.info("Terminating execution (name: \(executionName), id: \(executionId)")
+        
+        Task(priority: .userInitiated) {
             do {
                 try execution.terminate()
             } catch {
@@ -119,7 +120,9 @@ class CommandExecutor: Executor, TerminalLineProducer {
     
     func shutdown() {
         terminateAll()
-        executionTextContinuation.finish()
+        Task {
+            await executionTextBlockingQueue.finish()
+        }
     }
     
     func readTerminalLines() async -> [TerminalLine] {
@@ -185,9 +188,11 @@ class CommandExecutor: Executor, TerminalLineProducer {
     
     private func parseTerminalLine() async {
         
-        for await executionText in executionTextAsyncStream {
+        while let executionText = await executionTextBlockingQueue.dequeue() {
+            
             let terminalLine = TerminateLineParser.parseTerminalLine(
                 text: executionText.text, execution: executionText.executionName)
+            
             await terminalLineQueue.enqueue(terminalLine)
         }
     }
