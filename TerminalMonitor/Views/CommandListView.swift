@@ -45,7 +45,7 @@ struct CommandListView: View {
                 .labelStyle(.titleAndIcon)
                 
                 Divider()
-
+                
                 Button("Add", systemImage: "plus") {
                     CommandListViewHelper.addCommandConfig(workspaceConfig: workspaceConfig)
                 }
@@ -106,14 +106,17 @@ struct CommandListViewHelper {
     }
     
     static func editCommandConfig(_ commandConfig: Binding<CommandConfig>) {
+        
         CommandDetailWindowController.openWindow(for: commandConfig)
     }
     
     static func removeCommandConfig(commandId: UUID, workspaceConfig: WorkspaceConfig) {
+        
         workspaceConfig.delete(id: commandId)
     }
     
     static func startCommand(_ commandConfig: CommandConfig) {
+        
         NotificationCenter.default.post(
             name: .commandStartingEvent,
             object: nil,
