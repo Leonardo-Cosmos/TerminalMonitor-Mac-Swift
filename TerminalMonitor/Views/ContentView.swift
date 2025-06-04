@@ -30,18 +30,32 @@ struct ContentView: View {
         } detail: {
             TerminalView()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .commandStartingEvent)) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: .commandToStartEvent)) { notification in
             if let commandConfig = notification.userInfo?[NotificationUserInfoKey.command] as? CommandConfig {
                 executor.execute(commandConfig: commandConfig)
             } else {
-                Self.logger.error("Missing userInfo in \(Notification.Name.commandStartingEvent.rawValue)")
+                Self.logger.error("Missing userInfo in \(Notification.Name.commandToStartEvent.rawValue)")
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .executionTerminatingEvent)) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: .commandToStopEvent)) { notification in
+            if let commandConfig = notification.userInfo?[NotificationUserInfoKey.command] as? CommandConfig {
+                executor.terminateAll(commandId: commandConfig.id)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.commandToStopEvent.rawValue)")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .executionToStopEvent)) { notification in
             if let executionId = notification.userInfo?[NotificationUserInfoKey.id] as? UUID {
                 executor.terminate(executionId: executionId)
             } else {
-                Self.logger.error("Missing userInfo in \(Notification.Name.executionTerminatingEvent.rawValue)")
+                Self.logger.error("Missing userInfo in \(Notification.Name.executionToStopEvent.rawValue)")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .executionToRestartEvent)) { notification in
+            if let executionId = notification.userInfo?[NotificationUserInfoKey.id] as? UUID {
+                executor.restart(executionId: executionId)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.executionToRestartEvent.rawValue)")
             }
         }
         .onAppear {
@@ -62,6 +76,28 @@ struct ContentView: View {
                         userInfo: [
                             NotificationUserInfoKey.execution: executionInfo,
                             NotificationUserInfoKey.error: error as Any
+                        ]
+                    )
+                }
+            }
+            executor.commandFirstExecutionStartedHandler = { commandInfo in
+                Task { @MainActor in
+                    NotificationCenter.default.post(
+                        name: .commandFirstExecutionStartedEvent,
+                        object: nil,
+                        userInfo: [
+                            NotificationUserInfoKey.command: commandInfo
+                        ]
+                    )
+                }
+            }
+            executor.commandLastExecutionExitedHandler = { commandInfo in
+                Task { @MainActor in
+                    NotificationCenter.default.post(
+                        name: .commandLastExecutionExitedEvent,
+                        object: nil,
+                        userInfo: [
+                            NotificationUserInfoKey.command: commandInfo
                         ]
                     )
                 }

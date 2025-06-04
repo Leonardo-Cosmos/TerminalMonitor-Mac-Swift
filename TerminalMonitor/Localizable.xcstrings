@@ -85,7 +85,7 @@
         }
       }
     },
-    "Run" : {
+    "Restart" : {
 
     },
     "Save" : {
@@ -101,7 +101,10 @@
     "Save Workspace" : {
 
     },
-    "Terminate" : {
+    "Start" : {
+
+    },
+    "Stop" : {
 
     },
     "Working Directory" : {

@@ -6,10 +6,16 @@
 //
 
 import SwiftUI
+import os
 
 struct CommandListView: View {
     
     typealias CommandEventHandler = (CommandConfig) -> Void
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Self.self)
+    )
     
     @Binding var selection: UUID?
     
@@ -17,12 +23,14 @@ struct CommandListView: View {
     
     @EnvironmentObject private var workspaceConfig: WorkspaceConfig
     
+    @State var runningSet: Set<UUID> = Set()
+    
     var commandStartedHandler: CommandEventHandler?
     
     var body: some View {
         ForEach($workspaceConfig.commands, id: \.id) { $command in
             NavigationLink(value: command.id) {
-                CommandListViewItem(command: $command)
+                CommandListViewItem(command: $command, runningSet: $runningSet)
             }
             .onTapGesture(count: 1) {
                 selection = command.id
@@ -32,10 +40,16 @@ struct CommandListView: View {
             }
             .onDrop(of: [.text], delegate: CommandDropDelegate(item: command, items: $workspaceConfig.commands))
             .contextMenu {
-                Button("Run", systemImage: "play") {
+                Button("Start", systemImage: "play") {
                     CommandListViewHelper.startCommand(command)
                 }
                 .labelStyle(.titleAndIcon)
+                
+                Button("Stop", systemImage: "stop") {
+                    CommandListViewHelper.stopCommand(command)
+                }
+                .labelStyle(.titleAndIcon)
+                .disabled(!runningSet.contains(command.id))
                 
                 Divider()
                 
@@ -70,12 +84,28 @@ struct CommandListView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .commandFirstExecutionStartedEvent)) { notification in
+            if let commandInfo = notification.userInfo?[NotificationUserInfoKey.command] as? CommandInfo {
+                runningSet.insert(commandInfo.id)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.commandFirstExecutionStartedEvent.rawValue)")
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .commandLastExecutionExitedEvent)) { notification in
+            if let commandInfo = notification.userInfo?[NotificationUserInfoKey.command] as? CommandInfo {
+                runningSet.remove(commandInfo.id)
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.commandLastExecutionExitedEvent.rawValue)")
+            }
+        }
     }
 }
 
 struct CommandListViewItem: View {
     
     @Binding var command: CommandConfig
+    
+    @Binding var runningSet: Set<UUID>
     
     var body: some View {
         HStack {
@@ -84,7 +114,14 @@ struct CommandListViewItem: View {
             
             Spacer()
             
-            Button("Run", systemImage: "play") {
+            if runningSet.contains(command.id) {
+                Button("Stop", systemImage: "stop") {
+                    CommandListViewHelper.stopCommand(command)
+                }
+                .labelStyle(.iconOnly)
+            }
+            
+            Button("Start", systemImage: "play") {
                 CommandListViewHelper.startCommand(command)
             }
             .labelStyle(.iconOnly)
@@ -118,7 +155,16 @@ struct CommandListViewHelper {
     static func startCommand(_ commandConfig: CommandConfig) {
         
         NotificationCenter.default.post(
-            name: .commandStartingEvent,
+            name: .commandToStartEvent,
+            object: nil,
+            userInfo: [NotificationUserInfoKey.command: commandConfig]
+        )
+    }
+    
+    static func stopCommand(_ commandConfig: CommandConfig) {
+        
+        NotificationCenter.default.post(
+            name: .commandToStopEvent,
             object: nil,
             userInfo: [NotificationUserInfoKey.command: commandConfig]
         )

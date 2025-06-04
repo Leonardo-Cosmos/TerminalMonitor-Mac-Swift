@@ -11,15 +11,31 @@ protocol Executor {
     
     typealias ExecutionInfoHandler = (ExecutionInfo, Error?) -> Void
     
-    func execute(commandConfig: CommandConfig)
+    typealias CommandInfoHandler = (CommandInfo) -> Void
     
-    func terminate(executionId: UUID)
+    @discardableResult
+    func execute(commandConfig: CommandConfig) -> Task<Void, Never>?
     
-    func terminateAll()
+    @discardableResult
+    func terminate(executionId: UUID) -> Task<Void, Never>?
     
-    func shutdown()
+    @discardableResult
+    func restart(executionId: UUID) -> Task<Void, Never>?
+    
+    @discardableResult
+    func terminateAll(commandId: UUID) -> Task<Void, Never>?
+    
+    @discardableResult
+    func terminateAll() -> Task<Void, Never>
+    
+    @discardableResult
+    func shutdown() -> Task<Void, Never>
     
     var executionStartedHandler: ExecutionInfoHandler? { get set }
     
     var executionExitedHandler: ExecutionInfoHandler? { get set }
+    
+    var commandFirstExecutionStartedHandler: CommandInfoHandler? { get set }
+    
+    var commandLastExecutionExitedHandler: CommandInfoHandler? { get set }
 }

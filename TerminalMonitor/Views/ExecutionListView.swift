@@ -6,8 +6,14 @@
 //
 
 import SwiftUI
+import os
 
 struct ExecutionListView: View {
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Self.self)
+    )
     
     @Binding var selection: UUID?
     
@@ -32,8 +38,13 @@ struct ExecutionListView: View {
             }
             .onDrop(of: [.text], delegate: ExecutionDropDelegate(item: execution, items: $executions))
             .contextMenu {
-                Button("Terminate", systemImage: "stop") {
-                    ExecutionListViewHelper.terminateExecution(executionId: execution.id)
+                Button("Stop", systemImage: "stop") {
+                    ExecutionListViewHelper.stopExecution(executionId: execution.id)
+                }
+                .labelStyle(.titleAndIcon)
+                
+                Button("Restart", systemImage: "arrow.circlepath") {
+                    ExecutionListViewHelper.restartExecution(executionId: execution.id)
                 }
                 .labelStyle(.titleAndIcon)
             }
@@ -48,6 +59,8 @@ struct ExecutionListView: View {
                         _ = changeSet.remove(execution.id)
                     }
                 }
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.executionStartedEvent.rawValue)")
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .executionExitedEvent)) { notification in
@@ -61,6 +74,8 @@ struct ExecutionListView: View {
                     executions.removeAll(where: { $0.id == execution.id })
                     changeSet.remove(execution.id)
                 }
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.executionExitedEvent.rawValue)")
             }
             
             if let error = notification.userInfo?[NotificationUserInfoKey.error] as? Error {
@@ -88,8 +103,13 @@ struct ExecutionListViewItem: View {
             
             Spacer()
             
-            Button("Terminate", systemImage: "stop") {
-                ExecutionListViewHelper.terminateExecution(executionId: execution.id)
+            Button("Stop", systemImage: "stop") {
+                ExecutionListViewHelper.stopExecution(executionId: execution.id)
+            }
+            .labelStyle(.iconOnly)
+            
+            Button("Restart", systemImage: "arrow.circlepath") {
+                ExecutionListViewHelper.restartExecution(executionId: execution.id)
             }
             .labelStyle(.iconOnly)
         }
@@ -100,10 +120,19 @@ struct ExecutionListViewItem: View {
 
 struct ExecutionListViewHelper {
     
-    static func terminateExecution(executionId: UUID) {
+    static func stopExecution(executionId: UUID) {
         
         NotificationCenter.default.post(
-            name: .executionTerminatingEvent,
+            name: .executionToStopEvent,
+            object: nil,
+            userInfo: [NotificationUserInfoKey.id: executionId]
+        )
+    }
+    
+    static func restartExecution(executionId: UUID) {
+        
+        NotificationCenter.default.post(
+            name: .executionToRestartEvent,
             object: nil,
             userInfo: [NotificationUserInfoKey.id: executionId]
         )

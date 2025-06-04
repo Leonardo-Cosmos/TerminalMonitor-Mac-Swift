@@ -9,11 +9,17 @@ import Foundation
 
 extension Notification.Name {
     
-    static let commandStartingEvent = Notification.Name("commandStartingEvent")
+    static let commandToStartEvent = Notification.Name("commandToStartEvent")
     
-    static let commandTerminatingEvent = Notification.Name("commandTerminatingEvent")
+    static let commandToStopEvent = Notification.Name("commandToStopEvent")
     
-    static let executionTerminatingEvent = Notification.Name("executionTerminatingEvent")
+    static let commandFirstExecutionStartedEvent = Notification.Name("commandFirstExecutionStartedEvent")
+    
+    static let commandLastExecutionExitedEvent = Notification.Name("commandLastExecutionExitedEvent")
+    
+    static let executionToStopEvent = Notification.Name("executionToStopEvent")
+    
+    static let executionToRestartEvent = Notification.Name("executionToRestartEvent")
     
     static let executionStartedEvent = Notification.Name("executionStartedEvent")
     

@@ -18,7 +18,7 @@ class Execution {
     
     let id: UUID
     
-    private let commandConfig: CommandConfig
+    let commandConfig: CommandConfig
     
     private var started = false
     
