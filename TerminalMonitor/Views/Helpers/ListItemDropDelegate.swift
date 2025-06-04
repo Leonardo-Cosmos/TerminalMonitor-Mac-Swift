@@ -50,5 +50,4 @@ class ListItemDropDelegate<Item, ID>: DropDelegate where ID: Equatable {
         
         return true
     }
-    
 }

@@ -2,7 +2,20 @@
 //  ViewExtension.swift
 //  TerminalMonitor
 //
-//  Created by Leximus on 6/4/25.
+//  Created on 2025/6/4.
 //
 
-import Foundation
+import SwiftUI
+
+extension View {
+    
+    @ViewBuilder
+    func onCondition<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}

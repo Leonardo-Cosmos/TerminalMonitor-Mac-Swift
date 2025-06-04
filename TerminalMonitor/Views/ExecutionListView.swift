@@ -27,9 +27,10 @@ struct ExecutionListView: View {
     
     var body: some View {
         ForEach(executions, id: \.id) { execution in
-            NavigationLink(value: execution.id) {
-                ExecutionListViewItem(execution: execution, changeSet: $changeSet)
-            }
+            ExecutionListViewItem(
+                execution: execution,
+                changeSet: $changeSet
+            )
             .onTapGesture(count: 1) {
                 selection = execution.id
             }

@@ -23,15 +23,17 @@ struct CommandListView: View {
     
     @EnvironmentObject private var workspaceConfig: WorkspaceConfig
     
-    @State var runningSet: Set<UUID> = Set()
+    @State private var runningSet: Set<UUID> = Set()
     
     var commandStartedHandler: CommandEventHandler?
     
     var body: some View {
+        
         ForEach($workspaceConfig.commands, id: \.id) { $command in
-            NavigationLink(value: command.id) {
-                CommandListViewItem(command: $command, runningSet: $runningSet)
-            }
+            CommandListViewItem(
+                command: $command,
+                runningSet: $runningSet
+            )
             .onTapGesture(count: 1) {
                 selection = command.id
             }
