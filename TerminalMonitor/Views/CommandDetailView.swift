@@ -11,24 +11,50 @@ struct CommandDetailView: View {
     
     var window: NSWindow?
     
-    @Binding var viewModel: CommandDetailViewModel
+    @ObservedObject var viewModel: CommandDetailViewModel
     
     var onSave: (() -> Void)?
     
     var body: some View {
         VStack {
-            TextField("Name", text: $viewModel.name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+            HStack {
+                Text("Name(*)")
+                    .frame(width: 80)
+                TextField("Unique name of the command", text: $viewModel.name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+            .padding()
             
-            TextField("Command", text: $viewModel.executableFile)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            HStack {
+                Text("Command(*)")
+                    .frame(maxWidth: 80)
+                TextField("Full path of the executable file", text: $viewModel.executableFile)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+            .padding()
             
-            TextField("Arguments", text: $viewModel.arguments)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            HStack {
+                Text("Arguments")
+                    .frame(maxWidth: 80)
+                TextField("Arguments of the command, separating by white space", text: $viewModel.arguments)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+            .padding()
             
-            TextField("Working Directory", text: $viewModel.currentDirectory)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            HStack {
+                Text("Directory")
+                    .frame(maxWidth: 80)
+                TextField("The working directory where to run the command", text: $viewModel.currentDirectory)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Browse", systemImage: "folder") {
+                    if let path = selectDirectory(dirPath: viewModel.currentDirectory) {
+                        viewModel.currentDirectory = path
+                        viewModel.objectWillChange.send()
+                    }
+                }
+                .labelStyle(.iconOnly)
+            }
+            .padding()
             
             Button("Save") {
                 onSave?()
@@ -36,18 +62,37 @@ struct CommandDetailView: View {
             }
             .padding()
         }
+        .frame(minWidth: 400)
+    }
+    
+    private func selectDirectory(dirPath: String) -> String? {
+        
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        
+        if !dirPath.isEmpty {
+            panel.directoryURL = URL(filePath: dirPath, directoryHint: .isDirectory)
+        }
+        
+        if panel.runModal() == .OK, let url = panel.url {
+            return url.path(percentEncoded: false)
+        } else {
+            return nil
+        }
     }
 }
 
 class CommandDetailViewModel: ObservableObject {
     
-    var name: String
+    @Published var name: String
     
-    var executableFile: String
+    @Published var executableFile: String
     
-    var arguments: String
+    @Published var arguments: String
     
-    var currentDirectory: String
+    @Published var currentDirectory: String
     
     init(name: String, executableFile: String, arguments: String, currentDirectory: String) {
         self.name = name
@@ -82,7 +127,7 @@ class CommandDetailWindowController {
     
     static func openWindow(for commandConfig: Binding<CommandConfig>, onSave: (() -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 400, height: 300)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 200)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],
@@ -90,17 +135,14 @@ class CommandDetailWindowController {
             defer: false
         )
         
-        var viewModel = CommandDetailViewModel(
+        let viewModel = CommandDetailViewModel(
             name: commandConfig.name.wrappedValue,
             executableFile: commandConfig.executableFile.wrappedValue ?? "",
             arguments: commandConfig.arguments.wrappedValue ?? "",
             currentDirectory: commandConfig.currentDirectory.wrappedValue ?? ""
         )
         
-        let view = CommandDetailView(window: window, viewModel: Binding(
-            get: { viewModel },
-            set: { viewModel = $0 }
-        ), onSave: {
+        let view = CommandDetailView(window: window, viewModel: viewModel, onSave: {
             // Update binding value of list view only when save button is clicked
             commandConfig.name.wrappedValue = viewModel.name
             commandConfig.executableFile.wrappedValue = viewModel.executableFile.isEmpty ? nil : viewModel.executableFile
@@ -136,6 +178,6 @@ class CommandDetailWindowController {
 
 #Preview {
     CommandDetailView(window: nil,
-                      viewModel: Binding.constant(CommandDetailViewModel(name: "Command")),
+                      viewModel: CommandDetailViewModel(name: "Command"),
                       onSave: {})
 }

@@ -30,6 +30,12 @@
     "Arguments" : {
 
     },
+    "Arguments of the command, separating by white space" : {
+
+    },
+    "Browse" : {
+
+    },
     "Clear" : {
 
     },
@@ -37,6 +43,12 @@
 
     },
     "Command" : {
+
+    },
+    "Command(*)" : {
+
+    },
+    "Directory" : {
 
     },
     "Edit" : {
@@ -53,6 +65,9 @@
     "Execution" : {
 
     },
+    "Full path of the executable file" : {
+
+    },
     "It has been started already" : {
       "comment" : "Error when start an execution that has been started already"
     },
@@ -60,6 +75,7 @@
       "comment" : "Error when terminate an execution that has not been started yet"
     },
     "Name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -68,6 +84,9 @@
           }
         }
       }
+    },
+    "Name(*)" : {
+
     },
     "New Workspace..." : {
 
@@ -107,7 +126,10 @@
     "Stop" : {
 
     },
-    "Working Directory" : {
+    "The working directory where to run the command" : {
+
+    },
+    "Unique name of the command" : {
 
     }
   },
