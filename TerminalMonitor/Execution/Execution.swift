@@ -22,7 +22,7 @@ class Execution {
     
     private var started = false
     
-    private let startLock = NSLock()
+    private let startSemaphore = DispatchSemaphore(value: 1)
     
     private(set) var completed = false
     
@@ -35,49 +35,52 @@ class Execution {
         self.commandConfig = commandConfig
     }
     
-    func run() throws {
+    @discardableResult
+    func run() throws -> Task<Void, Never> {
         
-        Self.logger.debug("Execution (id: \(self.id)) is started")
+        Self.logger.debug("Execution (id: \(self.id)) is starting")
         
-        startLock.lock()
+        startSemaphore.wait()
         if started {
-            startLock.unlock()
+            startSemaphore.signal()
             throw ExecutionError.alreadyStarted
         }
         
         started = true
         
-        Task {
+        return Task {
+            defer {
+                startSemaphore.signal()
+            }
+            
             do {
                 try self.run(executableFilePath: self.commandConfig.executableFile,
                              arguments: self.commandConfig.arguments,
-                             currentDirPath: self.commandConfig.currentDirectory,
-                             startLock: self.startLock)
+                             currentDirPath: self.commandConfig.currentDirectory)
             } catch {
                 onCompleted(error: error)
             }
         }
     }
     
-    func terminate() throws {
+    @discardableResult
+    func terminate() throws -> Task<Void, Never> {
         
-        Self.logger.debug("Execution (id: \(self.id)) is terminated")
+        Self.logger.debug("Execution (id: \(self.id)) is terminating")
         
-        startLock.lock()
+        startSemaphore.wait()
         if !started {
-            startLock.unlock()
+            startSemaphore.signal()
             throw ExecutionError.notStarted
         }
-        startLock.unlock()
+        startSemaphore.signal()
         
-        process?.terminate()
+        return Task {
+            process?.terminate()
+        }
     }
     
-    private func run(executableFilePath: String?, arguments: String?, currentDirPath: String?, startLock: NSLock) throws {
-        
-        defer {
-            startLock.unlock()
-        }
+    private func run(executableFilePath: String?, arguments: String?, currentDirPath: String?) throws {
         
         guard let executableFilePath = executableFilePath else {
             onCompleted()
@@ -132,9 +135,7 @@ class Execution {
         }
         
         try process.run()
-        Self.logger.debug("Execution \(self.id) is running")
-        
-        // process.waitUntilExit()
+        Self.logger.debug("Execution (id: \(self.id)) is started")
     }
     
     private func onCompleted(error: Error? = nil) {
@@ -147,6 +148,6 @@ class Execution {
             textPublisher.send(completion: .finished)
         }
         
-        self.completed = true
+        completed = true
     }
 }

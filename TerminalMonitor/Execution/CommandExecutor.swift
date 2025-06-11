@@ -49,13 +49,14 @@ class CommandExecutor: Executor, TerminalLineProducer {
         }
     }
     
-    func execute(commandConfig: CommandConfig) -> Task<Void, Never>? {
+    func execute(commandConfig: CommandConfig) -> Task<Void, Never> {
         
         Self.logger.info("Executing command (name: \(commandConfig.name), id: \(commandConfig.id))")
         
         let execution = Execution(commandConfig: commandConfig)
         
         let uniqueExecutionName = executorData.uniqueExecutionName(configName: commandConfig.name)
+        
         let subscription = execution.textPublisher.sink(receiveCompletion: { completion in
             switch completion {
             case .finished:
@@ -73,16 +74,15 @@ class CommandExecutor: Executor, TerminalLineProducer {
             }
         })
         
-        let added = addExecution(executionName: uniqueExecutionName, execution: execution, command: commandConfig, subscription: subscription)
+        let added = addExecution(executionName: uniqueExecutionName, execution: execution, subscription: subscription)
         guard added else {
-            return nil
+            return Task {}
         }
         
-        return Task(priority: .userInitiated) {
+        return Task {
             do {
-                try execution.run()
+                try await execution.run().value
                 Self.logger.info("Execution (name: \(uniqueExecutionName), id: \(execution.id)) is started")
-                
             } catch {
                 Self.logger.error("Error when start execution \(uniqueExecutionName) \(execution.id). \(error)")
                 removeExecution(executionId: execution.id, error: error)
@@ -90,19 +90,20 @@ class CommandExecutor: Executor, TerminalLineProducer {
         }
     }
     
-    func terminate(executionId: UUID) -> Task<Void, Never>? {
+    func terminate(executionId: UUID) -> Task<Void, Never> {
         
         guard let execution =  executorData.execution(executionId: executionId),
               let executionName =  executorData.executionName(executionId: executionId) else {
             Self.logger.error("Cannot find detail of execution (id: \(executionId))")
-            return nil
+            return Task {}
         }
         
         Self.logger.info("Terminating execution (name: \(executionName), id: \(executionId))")
         
-        return Task(priority: .userInitiated) {
+        return Task {
             do {
-                try execution.terminate()
+                try await execution.terminate().value
+                Self.logger.info("Execution (name: \(executionName), id: \(executionId)) is terminated")
             } catch {
                 Self.logger.error("Error when terminate execution (name: \(executionName), id: \(executionId)). \(error)")
                 removeExecution(executionId: executionId, error: error)
@@ -110,59 +111,49 @@ class CommandExecutor: Executor, TerminalLineProducer {
         }
     }
     
-    func restart(executionId: UUID) -> Task<Void, Never>? {
+    func restart(executionId: UUID) -> Task<Void, Never> {
         
         guard let execution = executorData.execution(executionId: executionId) else {
             Self.logger.error("Cannot find detail of execution (id: \(executionId))")
-            return nil
+            return Task {}
         }
         
         return Task {
-            guard let terminateTask = terminate(executionId: executionId) else {
-                return
-            }
-            
-            await terminateTask.value
-            await execute(commandConfig: execution.commandConfig)?.value
+            await terminate(executionId: executionId).value
+            await execute(commandConfig: execution.commandConfig).value
         }
     }
     
-    func terminateAll(commandId: UUID) -> Task<Void, Never>? {
-        
-        guard let executionIds = executorData.executionIds(commandId: commandId) else {
-            Self.logger.error("Cannot find execution set of command (id: \(commandId))")
-            return nil
-        }
+    func terminateAll(executionIds: Set<UUID>) -> Task<Void, Never> {
         
         return Task {
             await withTaskGroup { taskGroup in
                 
                 for executionId in executionIds {
                     taskGroup.addTask {
-                        await self.terminate(executionId: executionId)?.value
+                        await self.terminate(executionId: executionId).value
                     }
                 }
                 
                 await taskGroup.waitForAll()
             }
         }
+    }
+    
+    func terminateAll(commandId: UUID) -> Task<Void, Never> {
+        
+        guard let executionIds = executorData.executionIds(commandId: commandId) else {
+            Self.logger.error("Cannot find execution set of command (id: \(commandId))")
+            return Task {}
+        }
+        
+        return terminateAll(executionIds: executionIds)
     }
     
     func terminateAll() -> Task<Void, Never> {
         
         let executionIds = executorData.executionIds()
-        return Task {
-            await withTaskGroup { taskGroup in
-                
-                for executionId in executionIds {
-                    taskGroup.addTask {
-                        await self.terminate(executionId: executionId)?.value
-                    }
-                }
-                
-                await taskGroup.waitForAll()
-            }
-        }
+        return terminateAll(executionIds: executionIds)
     }
     
     func shutdown() -> Task<Void, Never> {
@@ -183,14 +174,15 @@ class CommandExecutor: Executor, TerminalLineProducer {
         return terminalLines
     }
     
-    private func addExecution(executionName: String, execution: Execution, command: CommandConfig, subscription: AnyCancellable) -> Bool {
+    private func addExecution(executionName: String, execution: Execution, subscription: AnyCancellable) -> Bool {
         
         if executorData.isEmpty {
             onStarted()
         }
         
-        if executorData.executionIds(commandId: command.id) == nil {
-            onCommandFirstExecutionStarted(name: command.name, id: command.id)
+        let commandConfig = execution.commandConfig
+        if executorData.executionIds(commandId: commandConfig.id) == nil {
+            onCommandFirstExecutionStarted(name: commandConfig.name, id: commandConfig.id)
         }
         
         do {
@@ -206,8 +198,7 @@ class CommandExecutor: Executor, TerminalLineProducer {
         }
     }
     
-    @discardableResult
-    private func removeExecution(executionId: UUID, error: Error? = nil) -> Bool {
+    private func removeExecution(executionId: UUID, error: Error? = nil) {
         
         do {
             let (executionName, execution, subscription) = try executorData.removeExecution(executionId: executionId)
@@ -216,21 +207,18 @@ class CommandExecutor: Executor, TerminalLineProducer {
             
             onExecutionRemoved(name: executionName, id: executionId, error: error)
             
-            let command = execution.commandConfig
-            if executorData.executionIds(commandId: command.id) == nil {
-                onCommandLastExecutionExited(name: command.name, id: command.id)
+            let commandConfig = execution.commandConfig
+            if executorData.executionIds(commandId: commandConfig.id) == nil {
+                onCommandLastExecutionExited(name: commandConfig.name, id: commandConfig.id)
             }
-            
         } catch {
             Self.logger.error("Error when remove execution (id: \(executionId)). \(error)")
-            return false
+            return
         }
         
         if executorData.isEmpty {
             onCompleted()
         }
-        
-        return true
     }
     
     private func parseTerminalLine() async {

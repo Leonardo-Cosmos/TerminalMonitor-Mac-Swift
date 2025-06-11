@@ -14,16 +14,19 @@ protocol Executor {
     typealias CommandInfoHandler = (CommandInfo) -> Void
     
     @discardableResult
-    func execute(commandConfig: CommandConfig) -> Task<Void, Never>?
+    func execute(commandConfig: CommandConfig) -> Task<Void, Never>
     
     @discardableResult
-    func terminate(executionId: UUID) -> Task<Void, Never>?
+    func terminate(executionId: UUID) -> Task<Void, Never>
     
     @discardableResult
-    func restart(executionId: UUID) -> Task<Void, Never>?
+    func restart(executionId: UUID) -> Task<Void, Never>
     
     @discardableResult
-    func terminateAll(commandId: UUID) -> Task<Void, Never>?
+    func terminateAll(executionIds: Set<UUID>) -> Task<Void, Never>
+    
+    @discardableResult
+    func terminateAll(commandId: UUID) -> Task<Void, Never>
     
     @discardableResult
     func terminateAll() -> Task<Void, Never>
