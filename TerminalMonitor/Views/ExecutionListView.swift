@@ -39,15 +39,13 @@ struct ExecutionListView: View {
             }
             .onDrop(of: [.text], delegate: ExecutionDropDelegate(item: execution, items: $executions))
             .contextMenu {
-                Button("Stop", systemImage: "stop") {
+                SymbolLabelButton(titleKey: "Stop", systemImage: "stop.fill", symbolColor: .red) {
                     ExecutionListViewHelper.stopExecution(executionId: execution.id)
                 }
-                .labelStyle(.titleAndIcon)
                 
-                Button("Restart", systemImage: "arrow.circlepath") {
+                SymbolLabelButton(titleKey: "Restart", systemImage: "arrow.circlepath", symbolColor: .blue) {
                     ExecutionListViewHelper.restartExecution(executionId: execution.id)
                 }
-                .labelStyle(.titleAndIcon)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .executionStartedEvent)) { notification in
@@ -104,15 +102,15 @@ struct ExecutionListViewItem: View {
             
             Spacer()
             
-            Button("Stop", systemImage: "stop") {
-                ExecutionListViewHelper.stopExecution(executionId: execution.id)
-            }
-            .labelStyle(.iconOnly)
-            
-            Button("Restart", systemImage: "arrow.circlepath") {
+            SymbolButton(systemImage: "arrow.circlepath", symbolColor: .blue) {
                 ExecutionListViewHelper.restartExecution(executionId: execution.id)
             }
-            .labelStyle(.iconOnly)
+            .help("Restart")
+            
+            SymbolButton(systemImage: "stop.fill", symbolColor: .red) {
+                ExecutionListViewHelper.stopExecution(executionId: execution.id)
+            }
+            .help("Stop")
         }
         .offset(y: changeSet.contains(execution.id) ? -10 : 0)
         .opacity(changeSet.contains(execution.id) ? 0.1 : 1.0)

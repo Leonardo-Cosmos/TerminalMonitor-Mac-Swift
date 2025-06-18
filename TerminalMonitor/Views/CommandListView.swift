@@ -42,15 +42,13 @@ struct CommandListView: View {
             }
             .onDrop(of: [.text], delegate: CommandDropDelegate(item: command, items: $workspaceConfig.commands))
             .contextMenu {
-                Button("Start", systemImage: "play") {
+                SymbolLabelButton(titleKey: "Start", systemImage: "play.fill", symbolColor: .green) {
                     CommandListViewHelper.startCommand(command)
                 }
-                .labelStyle(.titleAndIcon)
                 
-                Button("Stop", systemImage: "stop") {
+                SymbolLabelButton(titleKey: "Stop", systemImage: "stop.fill", symbolColor: .red) {
                     CommandListViewHelper.stopCommand(command)
                 }
-                .labelStyle(.titleAndIcon)
                 .disabled(!runningSet.contains(command.id))
                 
                 Divider()
@@ -109,6 +107,10 @@ struct CommandListViewItem: View {
     
     @Binding var runningSet: Set<UUID>
     
+    @State var isHoveringStart = false
+    
+    @State var isHoveringStop = false
+    
     var body: some View {
         HStack {
             Text(command.name)
@@ -117,16 +119,16 @@ struct CommandListViewItem: View {
             Spacer()
             
             if runningSet.contains(command.id) {
-                Button("Stop", systemImage: "stop") {
+                SymbolButton(systemImage: "stop.fill", symbolColor: .red) {
                     CommandListViewHelper.stopCommand(command)
                 }
-                .labelStyle(.iconOnly)
+                .help("Stop")
             }
             
-            Button("Start", systemImage: "play") {
+            SymbolButton(systemImage: "play.fill", symbolColor: .green) {
                 CommandListViewHelper.startCommand(command)
             }
-            .labelStyle(.iconOnly)
+            .help("Start")
         }
     }
 }
