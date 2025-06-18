@@ -5,21 +5,26 @@
 //  Created on 2025/5/21.
 //
 
+import Foundation
+
 class CommandConfigSetting: Codable {
     
-    let name: String
+    let id: String?
     
-    let startFile: String?
+    let name: String?
+    
+    let executableFile: String?
     
     let arguments: String?
     
-    let workDirectory: String?
+    let currentDirectory: String?
     
-    init(name: String, startFile: String?, arguments: String?, workDirectory: String?) {
+    init(id: String?, name: String?, executableFile: String?, arguments: String?, currentDirectory: String?) {
+        self.id = id
         self.name = name
-        self.startFile = startFile
+        self.executableFile = executableFile
         self.arguments = arguments
-        self.workDirectory = workDirectory
+        self.currentDirectory = currentDirectory
     }
 }
 
@@ -32,10 +37,11 @@ class CommandConfigSettingHelper {
         }
         
         return CommandConfigSetting(
+            id: commandConfig.id.uuidString,
             name: commandConfig.name,
-            startFile: commandConfig.startFile,
+            executableFile: commandConfig.executableFile,
             arguments: commandConfig.arguments,
-            workDirectory: commandConfig.workDirectory,
+            currentDirectory: commandConfig.currentDirectory,
         )
     }
     
@@ -46,10 +52,11 @@ class CommandConfigSettingHelper {
         }
         
         return CommandConfig(
-            name: setting.name,
-            startFile: setting.startFile,
+            id: UUID(uuidString: setting.id ?? "") ?? UUID(),
+            name: setting.name ?? "?",
+            executableFile: setting.executableFile,
             arguments: setting.arguments,
-            workDirectory: setting.workDirectory,
+            currentDirectory: setting.currentDirectory,
         )
     }
 }
