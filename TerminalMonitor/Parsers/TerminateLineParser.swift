@@ -11,6 +11,8 @@ class TerminateLineParser {
     
     private static let keySeparator = "."
     
+    private static let dateFormatter = defaultDateFormatter()
+    
     static func parseTerminalLine(text: String, execution: String) -> TerminalLine {
         
         let id = UUID()
@@ -52,6 +54,19 @@ class TerminateLineParser {
         guard let value = value else {
             return "%null%"
         }
+        
+        if let date = value as? Date {
+            return dateFormatter.string(from: date)
+        }
+        
         return "\(value)"
+    }
+    
+    private static func defaultDateFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        formatter.timeZone = .current
+        return formatter
     }
 }

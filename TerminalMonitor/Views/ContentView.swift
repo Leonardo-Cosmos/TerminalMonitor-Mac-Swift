@@ -28,7 +28,7 @@ struct ContentView: View {
             SidebarView(appViewModel: appViewModel)
                 .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
-            TerminalView()
+            TerminalTabView()
         }
         .onReceive(NotificationCenter.default.publisher(for: .commandToStartEvent)) { notification in
             if let commandConfig = notification.userInfo?[NotificationUserInfoKey.command] as? CommandConfig {

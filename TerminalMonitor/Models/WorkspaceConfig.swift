@@ -11,11 +11,13 @@ class WorkspaceConfig: ObservableObject {
     
     @Published var commands: [CommandConfig] = []
     
-    func append(_ commandConfig: CommandConfig) {
+    @Published var terminals: [TerminalConfig] = []
+    
+    func appendCommand(_ commandConfig: CommandConfig) {
         commands.append(commandConfig)
     }
     
-    func insert(_ commandConfig: CommandConfig, replacing id: UUID) {
+    func insertCommand(_ commandConfig: CommandConfig, replacing id: UUID) {
         let index = commands.firstIndex { command in command.id == id }
         if let index = index {
             commands.insert(commandConfig, at: index)
@@ -24,8 +26,45 @@ class WorkspaceConfig: ObservableObject {
         }
     }
     
-    func delete(id: UUID) {
+    func deleteCommand(id: UUID) {
         commands.removeAll() { command in command.id == id}
+    }
+    
+    func appendTerminal(_ terminalConfig: TerminalConfig) {
+        terminals.append(terminalConfig)
+    }
+    
+    func insertTerminal(_ terminalConfig: TerminalConfig, replacing id: UUID) {
+        let index = terminals.firstIndex { command in command.id == id }
+        if let index = index {
+            terminals.insert(terminalConfig, at: index)
+        } else {
+            terminals.append(terminalConfig)
+        }
+    }
+    
+    func deleteTerminal(id: UUID) {
+        terminals.removeAll() { terminal in terminal.id == id}
+    }
+    
+    func getTerminal(id: UUID?) -> TerminalConfig? {
+        guard let id = id else {
+            return nil
+        }
+        return terminals.first(where: { $0.id == id })
     }
 }
 
+func previewWorkspaceConfig() -> WorkspaceConfig {
+    let workspaceConfig = WorkspaceConfig()
+    workspaceConfig.commands = [
+        CommandConfig(name: "Console"),
+        CommandConfig(name: "Application"),
+        CommandConfig(name: "Tool"),
+    ]
+    workspaceConfig.terminals = [
+        TerminalConfig(name: "Console"),
+        TerminalConfig(name: "Application")
+    ]
+    return workspaceConfig
+}

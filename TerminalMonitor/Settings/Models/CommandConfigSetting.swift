@@ -11,7 +11,7 @@ class CommandConfigSetting: Codable {
     
     let id: String?
     
-    let name: String?
+    let name: String
     
     let executableFile: String?
     
@@ -19,7 +19,7 @@ class CommandConfigSetting: Codable {
     
     let currentDirectory: String?
     
-    init(id: String?, name: String?, executableFile: String?, arguments: String?, currentDirectory: String?) {
+    init(id: String?, name: String, executableFile: String?, arguments: String?, currentDirectory: String?) {
         self.id = id
         self.name = name
         self.executableFile = executableFile
@@ -30,18 +30,18 @@ class CommandConfigSetting: Codable {
 
 class CommandConfigSettingHelper {
     
-    static func save(_ commandConfig: CommandConfig?) -> CommandConfigSetting? {
+    static func save(_ value: CommandConfig?) -> CommandConfigSetting? {
         
-        guard let commandConfig = commandConfig else {
+        guard let value = value else {
             return nil
         }
         
         return CommandConfigSetting(
-            id: commandConfig.id.uuidString,
-            name: commandConfig.name,
-            executableFile: commandConfig.executableFile,
-            arguments: commandConfig.arguments,
-            currentDirectory: commandConfig.currentDirectory,
+            id: value.id.uuidString,
+            name: value.name,
+            executableFile: value.executableFile,
+            arguments: value.arguments,
+            currentDirectory: value.currentDirectory,
         )
     }
     
@@ -53,7 +53,7 @@ class CommandConfigSettingHelper {
         
         return CommandConfig(
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
-            name: setting.name ?? "?",
+            name: setting.name,
             executableFile: setting.executableFile,
             arguments: setting.arguments,
             currentDirectory: setting.currentDirectory,

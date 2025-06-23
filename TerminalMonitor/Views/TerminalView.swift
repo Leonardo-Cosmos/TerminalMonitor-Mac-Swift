@@ -6,24 +6,36 @@
 //
 
 import SwiftUI
+import os
 
 struct TerminalView: View {
     
-    @State private var terminalLineProducer: TerminalLineProducer = CommandExecutor.shared
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Self.self)
+    )
     
-    @State private var timer: Timer?
+    @ObservedObject var terminalConfig: TerminalConfig
     
-    @State private var shownLines: [TerminalLine] = []
+    @State private var shownLines: [TerminalLineDisplayInfo] = []
+    
+    @State private var fieldDisplayConfigs: [FieldDisplayConfig] = [
+        FieldDisplayConfig(fieldKey: "system.timestamp"),
+        FieldDisplayConfig(fieldKey: "system.execution"),
+        FieldDisplayConfig(fieldKey: "system.plaintext"),
+    ]
     
     var body: some View {
-        List {
-            ForEach(shownLines, id: \.id) { terminalLine in
-                HStack {
-                    Text(terminalLine.lineFieldDict["system.execution"]?.text ?? "")
-                    
-                    Spacer()
-                    
-                    Text(terminalLine.plaintext)
+        Table(shownLines) {
+            TableColumnForEach(fieldDisplayConfigs, id: \.id) { fieldDisplayConfig in
+                
+                TableColumn(fieldDisplayConfig.fieldKey) { (lineDisplayInfo: TerminalLineDisplayInfo) in
+                    let fieldDisplayInfo = lineDisplayInfo.lineFieldDict[fieldDisplayConfig.fieldKey]
+                    Text(fieldDisplayInfo?.text ?? "")
+                        .lineLimit(nil)
+                        .onCondition(fieldDisplayInfo?.background != nil) { view in
+                            view.background(fieldDisplayInfo?.background!)
+                        }
                 }
             }
         }
@@ -33,25 +45,50 @@ struct TerminalView: View {
             }
             .labelStyle(.iconOnly)
         }
-        .onAppear {
-            terminalLineProducer.startedHandler = {
-                timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-                    Task {
-                        let terminalLines = await terminalLineProducer.readTerminalLines()
-                        Task { @MainActor in
-                            shownLines.append(contentsOf: terminalLines)
-                        }
-                    }
-                }
-            }
-            terminalLineProducer.completedHandler = {
-                timer?.invalidate()
-                timer = nil
+        .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
+            if let terminalLines = notification.userInfo?[NotificationUserInfoKey.terminalLines] as? [TerminalLine] {
+                
+                let terminalLineDisplayConfigs = terminalLines.map { buildDisplayConfig(terminalLine: $0) }
+                shownLines.append(contentsOf: terminalLineDisplayConfigs)
+                
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.terminalLinesAppendedEvent.rawValue)")
             }
         }
+    }
+    
+    private func buildDisplayConfig(terminalLine: TerminalLine) -> TerminalLineDisplayInfo {
+        
+        var lineFieldDict: [String: TerminalFieldDisplayInfo] = [:]
+        for fieldDisplayConfig in fieldDisplayConfigs {
+            if let lineField = terminalLine.lineFieldDict[fieldDisplayConfig.fieldKey] {
+                lineFieldDict[lineField.fieldKey] = TerminalFieldDisplayInfo(
+                    text: lineField.text,
+//                    background: lineField.text.range(of: "[135]", options: .regularExpression) != nil ? .green : nil
+                )
+            }
+        }
+        
+        return TerminalLineDisplayInfo(lineFieldDict: lineFieldDict)
     }
 }
 
 #Preview {
-    TerminalView()
+    TerminalView(terminalConfig: TerminalConfig(name: "Console"))
+}
+
+struct TerminalLineDisplayInfo: Identifiable {
+    
+    let id = UUID()
+    
+    let lineFieldDict: [String: TerminalFieldDisplayInfo]
+}
+
+struct TerminalFieldDisplayInfo: Identifiable {
+    
+    let id = UUID()
+    
+    let text: String
+    
+    let background: Color? = nil
 }

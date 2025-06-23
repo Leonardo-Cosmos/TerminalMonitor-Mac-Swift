@@ -7,7 +7,7 @@
 
 import Foundation
 
-class TerminalLine {
+class TerminalLine: Identifiable {
     
     let id: UUID
     

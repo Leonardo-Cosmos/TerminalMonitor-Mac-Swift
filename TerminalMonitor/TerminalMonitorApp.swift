@@ -264,6 +264,13 @@ struct TerminalMonitorApp: App {
         let commands = workspaceSetting.commands?
             .map { command in CommandConfigSettingHelper.load(command)! }
         workspaceConfig.commands = commands ?? []
+        
+        let terminals = workspaceSetting.terminals?
+            .map { terminal in TerminalConfigSettingHelper.load(terminal)! }
+        workspaceConfig.terminals = terminals ?? []
+        if workspaceConfig.terminals.isEmpty {
+            workspaceConfig.terminals.append(TerminalConfig.default())
+        }
     }
     
     private func writeWorkspaceFile(url: URL) throws {
@@ -271,7 +278,13 @@ struct TerminalMonitorApp: App {
         let commandSettings = workspaceConfig.commands
             .map { command in CommandConfigSettingHelper.save(command)! }
         
-        let workspaceSetting = WorkspaceSetting(commands: commandSettings)
+        let terminalSettings = workspaceConfig.terminals
+            .map { terminal in TerminalConfigSettingHelper.save(terminal)! }
+        
+        let workspaceSetting = WorkspaceSetting(
+            commands: commandSettings,
+            terminals: terminalSettings
+        )
         
         try SettingSerializer.serialize(workspaceSetting: workspaceSetting, settingFilePath: url.path(percentEncoded: false))
     }
