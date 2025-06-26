@@ -38,3 +38,11 @@ class CommandConfig: Identifiable, ObservableObject {
         )
     }
 }
+
+func previewCommandConfigs() -> [CommandConfig] {
+    [
+        CommandConfig(name: "Console"),
+        CommandConfig(name: "Application"),
+        CommandConfig(name: "Tool"),
+    ]
+}

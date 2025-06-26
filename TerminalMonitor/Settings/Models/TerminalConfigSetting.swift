@@ -33,7 +33,7 @@ class TerminalConfigSettingHelper {
         return TerminalConfigSetting(
             id: value.id.uuidString,
             name: value.name,
-            visibleFields: value.visibleFields?
+            visibleFields: value.visibleFields
                 .map { FieldDisplayConfigSettingHelper.save($0)! }
         )
     }
@@ -47,7 +47,8 @@ class TerminalConfigSettingHelper {
         return TerminalConfig(
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             name: setting.name,
-            visibleFields: setting.visibleFields?
-                .map { FieldDisplayConfigSettingHelper.load($0)! })
+            visibleFields: (setting.visibleFields ?? [])
+                .map { FieldDisplayConfigSettingHelper.load($0)! }
+        )
     }
 }

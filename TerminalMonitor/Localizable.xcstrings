@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27,6 +30,9 @@
     "Add Command" : {
 
     },
+    "Apply" : {
+
+    },
     "Arguments" : {
 
     },
@@ -40,6 +46,9 @@
 
     },
     "Close Workspace" : {
+
+    },
+    "Column header" : {
 
     },
     "Command" : {
@@ -65,7 +74,25 @@
     "Execution" : {
 
     },
+    "Field Key" : {
+
+    },
+    "Fields" : {
+
+    },
     "Full path of the executable file" : {
+
+    },
+    "Full path of the field" : {
+
+    },
+    "Header" : {
+
+    },
+    "Hello, World!" : {
+
+    },
+    "Hide this column" : {
 
     },
     "It has been started already" : {
@@ -73,6 +100,12 @@
     },
     "It has not been started yet" : {
       "comment" : "Error when terminate an execution that has not been started yet"
+    },
+    "Move Left" : {
+
+    },
+    "Move Right" : {
+
     },
     "Name" : {
       "extractionState" : "stale",

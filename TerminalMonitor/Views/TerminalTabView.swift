@@ -15,7 +15,7 @@ struct TerminalTabView: View {
     
     @State private var terminalLineProducer: TerminalLineProducer = CommandExecutor.shared
     
-    @State private var terminalSupervisor: TerminalSupervisor = TerminalLineArraySupervisor.shared
+    @State private var terminalLineContainer: TerminalLineContainer = TerminalLineSupervisor.shared
     
     @State private var timer: Timer?
     
@@ -69,13 +69,13 @@ struct TerminalTabView: View {
         }
         .padding()
         .onAppear {
-            selectedTab = workspaceConfig.terminals[0].id
+            selectedTab = workspaceConfig.terminals.first?.id
             
             terminalLineProducer.startedHandler = {
                 timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
                     Task {
                         let terminalLines = await terminalLineProducer.readTerminalLines()
-                        await terminalSupervisor.appendTerminalLines(terminalLines: terminalLines)
+                        await terminalLineContainer.appendTerminalLines(terminalLines: terminalLines)
                     }
                 }
             }
@@ -84,7 +84,7 @@ struct TerminalTabView: View {
                 timer = nil
             }
             
-            terminalSupervisor.terminalLinesAppendedHandler = { terminalLines in
+            terminalLineContainer.terminalLinesAppendedHandler = { terminalLines in
                 Task { @MainActor in
                     NotificationCenter.default.post(
                         name: .terminalLinesAppendedEvent,
@@ -95,7 +95,7 @@ struct TerminalTabView: View {
                     )
                 }
             }
-            terminalSupervisor.terminalLinesRemovedHandler = { terminalLines in
+            terminalLineContainer.terminalLinesRemovedHandler = { terminalLines in
                 Task { @MainActor in
                     NotificationCenter.default.post(
                         name: .terminalLinesRemovedEvent,

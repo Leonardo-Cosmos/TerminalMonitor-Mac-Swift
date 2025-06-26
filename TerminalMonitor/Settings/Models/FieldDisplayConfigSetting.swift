@@ -13,12 +13,18 @@ class FieldDisplayConfigSetting: Codable {
     
     let fieldKey: String
     
+    let hidden: Bool
+    
     let headerName: String?
     
-    init(id: String?, fieldKey: String, headerName: String?) {
+    let customzieStyle: Bool
+    
+    init(id: String?, fieldKey: String, hidden: Bool, headerName: String?, customzieStyle: Bool) {
         self.id = id
         self.fieldKey = fieldKey
+        self.hidden = hidden
         self.headerName = headerName
+        self.customzieStyle = customzieStyle
     }
 }
 
@@ -33,7 +39,9 @@ class FieldDisplayConfigSettingHelper {
         return FieldDisplayConfigSetting(
             id: value.id.uuidString,
             fieldKey: value.fieldKey,
-            headerName: value.headerName
+            hidden: value.hidden,
+            headerName: value.headerName,
+            customzieStyle: value.customizeStyle
         )
     }
     
@@ -46,8 +54,10 @@ class FieldDisplayConfigSettingHelper {
         return FieldDisplayConfig(
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             fieldKey: setting.fieldKey,
-            headerName: setting.headerName
+            hidden: setting.hidden,
+            headerName: setting.headerName,
+            customizeStyle: setting.customzieStyle,
+            style: TextStyleConfig()
         )
     }
-    
 }

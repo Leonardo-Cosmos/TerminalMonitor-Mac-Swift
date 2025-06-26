@@ -57,14 +57,7 @@ class WorkspaceConfig: ObservableObject {
 
 func previewWorkspaceConfig() -> WorkspaceConfig {
     let workspaceConfig = WorkspaceConfig()
-    workspaceConfig.commands = [
-        CommandConfig(name: "Console"),
-        CommandConfig(name: "Application"),
-        CommandConfig(name: "Tool"),
-    ]
-    workspaceConfig.terminals = [
-        TerminalConfig(name: "Console"),
-        TerminalConfig(name: "Application")
-    ]
+    workspaceConfig.commands = previewCommandConfigs()
+    workspaceConfig.terminals = previewTerminalConfigs()
     return workspaceConfig
 }

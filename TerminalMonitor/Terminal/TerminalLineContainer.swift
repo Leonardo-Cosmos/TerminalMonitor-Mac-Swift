@@ -1,5 +1,5 @@
 //
-//  TerminalLinesSupervisor.swift
+//  TerminalLineContainer.swift
 //  TerminalMonitor
 //
 //  Created on 2025/6/20.
@@ -7,15 +7,11 @@
 
 import Foundation
 
-protocol TerminalSupervisor {
+protocol TerminalLineContainer {
     
     typealias TerminalLinesHandler = ([TerminalLine]) -> Void
     
     func appendTerminalLines(terminalLines: [TerminalLine])
-    
-    func removeTerminalLinesUtil(terminalLineId: UUID)
-    
-    var terminalLines: [TerminalLine] { get }
     
     var terminalLinesAppendedHandler: TerminalLinesHandler? { get set }
     

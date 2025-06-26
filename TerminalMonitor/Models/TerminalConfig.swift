@@ -11,17 +11,17 @@ class TerminalConfig: Identifiable, ObservableObject {
     
     let id: UUID
     
-    var name: String
+    @Published var name: String
     
-    var visibleFields: [FieldDisplayConfig]?
+    @Published var visibleFields: [FieldDisplayConfig] = []
     
-    init(id: UUID, name: String, visibleFields: [FieldDisplayConfig]? = nil) {
+    init(id: UUID, name: String, visibleFields: [FieldDisplayConfig] = []) {
         self.id = id
         self.name = name
         self.visibleFields = visibleFields
     }
     
-    convenience init(name: String, visibleFields: [FieldDisplayConfig]? = nil) {
+    convenience init(name: String, visibleFields: [FieldDisplayConfig] = []) {
         self.init(
             id: UUID(),
             name: name,
@@ -31,7 +31,19 @@ class TerminalConfig: Identifiable, ObservableObject {
     
     static func `default`() -> TerminalConfig {
         TerminalConfig(
-            name: "default"
+            name: "Default"
         )
     }
+}
+
+func previewTerminalConfigs() -> [TerminalConfig] {
+    [
+        TerminalConfig(
+            name: "Console",
+            visibleFields: previewFieldDisplayConfigs()
+        ),
+        TerminalConfig(
+            name: "Application"
+        ),
+    ]
 }

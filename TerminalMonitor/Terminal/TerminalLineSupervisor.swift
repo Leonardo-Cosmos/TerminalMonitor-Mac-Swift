@@ -7,9 +7,9 @@
 
 import Foundation
 
-class TerminalLineArraySupervisor: TerminalSupervisor {
+class TerminalLineSupervisor: TerminalLineContainer, TerminalLineViewer {
     
-    static let shared = TerminalLineArraySupervisor()
+    static let shared = TerminalLineSupervisor()
     
     var terminalLines: [TerminalLine] = []
     

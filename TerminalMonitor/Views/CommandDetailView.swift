@@ -177,7 +177,5 @@ class CommandDetailWindowController {
 //}
 
 #Preview {
-    CommandDetailView(window: nil,
-                      viewModel: CommandDetailViewModel(name: "Command"),
-                      onSave: {})
+    CommandDetailView(viewModel: CommandDetailViewModel(name: "Command"))
 }
