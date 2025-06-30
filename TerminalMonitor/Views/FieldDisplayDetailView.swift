@@ -108,7 +108,7 @@ class FieldDisplayDetailWindowController {
           
             fieldDisplayConfigValue.fieldKey = viewModel.fieldKey
             fieldDisplayConfigValue.hidden = viewModel.hidden
-            fieldDisplayConfigValue.headerName = viewModel.headerName
+            fieldDisplayConfigValue.headerName = viewModel.headerName.isEmpty ? nil : viewModel.headerName
             fieldDisplayConfigValue.customizeStyle = viewModel.customizeStyle
             
             onSave?(fieldDisplayConfig.wrappedValue)

@@ -31,7 +31,9 @@ struct TerminalView: View {
     
     @State private var selectedFields: Set<UUID> = []
     
-    @State private var lastSelectedField: UUID?
+    @State private var selectedField: UUID?
+    
+    @State private var selectMultiFields = false
     
     @State private var selectedLine: UUID?
     
@@ -40,24 +42,13 @@ struct TerminalView: View {
             DisclosureGroup(isExpanded: $isFieldsListExpanded, content: {
                 HStack {
                     ForEach(visibleFields) { fieldDisplayConfig in
-                        Button(action: {
-                            let fieldId = fieldDisplayConfig.id
-                            if selectedFields.contains(fieldId) {
-                                selectedFields.remove(fieldId)
-                                if lastSelectedField == fieldId {
-                                    lastSelectedField = nil
-                                }
-                            } else {
-                                selectedFields.insert(fieldId)
-                                lastSelectedField = fieldId
-                            }
-                        }) {
+                        Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
                             Text(fieldDisplayConfig.fieldKey)
-//                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
+                            //                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
                                 .background(selectedFields.contains(fieldDisplayConfig.id) ?  Color(nsColor: NSColor.selectedControlColor) : .clear)
-//                                .padding(.horizontal, 4)
-//                                .padding(.vertical, 4)
-//                                .padding()
+                            //                                .padding(.horizontal, 4)
+                            //                                .padding(.vertical, 4)
+                            //                                .padding()
                         }
                         .contextMenu {
                             Button("Edit", systemImage: "pencil") {
@@ -67,8 +58,7 @@ struct TerminalView: View {
                         }
                     }
                 }
-            },
-                            label: {
+            }, label: {
                 HStack {
                     Text("Fields")
                     
@@ -80,7 +70,7 @@ struct TerminalView: View {
                     .labelStyle(.iconOnly)
                     
                     Button("Remove", systemImage: "minus") {
-                        if let fieldId = lastSelectedField {
+                        if let fieldId = selectedField {
                             FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
                         }
                     }
@@ -88,7 +78,7 @@ struct TerminalView: View {
                     .disabled(selectedFields.isEmpty)
                     
                     Button("Edit", systemImage: "pencil") {
-                        if let selectedFieldConfig = visibleFields.first(where: { $0.id == lastSelectedField }) {
+                        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedField }) {
                             FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
                         }
                     }
@@ -109,6 +99,17 @@ struct TerminalView: View {
                     
                     Spacer()
                     
+                    Button("Select", systemImage: selectMultiFields ? "checklist.checked" : "checklist") {
+                        if selectMultiFields {
+                            selectedFields.removeAll()
+                            if let selectedField = selectedField {
+                                selectedFields.insert(selectedField)
+                            }
+                        }
+                        selectMultiFields.toggle()
+                    }
+                    .labelStyle(.iconOnly)
+                    
                     Button("Apply", systemImage: "checkmark") {
                         applyVisibleFields()
                     }
@@ -124,14 +125,15 @@ struct TerminalView: View {
             
             Table(lineViewModels, selection: $selectedLine) {
                 TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
-                    
-                    TableColumn(fieldDisplayConfig.fieldKey) { (lineViewModel: TerminalLineViewModel) in
-                        let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
-                        Text(fieldViewModel?.text ?? "")
-                            .lineLimit(nil)
-                            .onCondition(fieldViewModel?.background != nil) { view in
-                                view.background(fieldViewModel?.background!)
-                            }
+                    if !fieldDisplayConfig.hidden {
+                        TableColumn(fieldDisplayConfig.headerName ?? fieldDisplayConfig.fieldKey) { (lineViewModel: TerminalLineViewModel) in
+                            let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
+                            Text(fieldViewModel?.text ?? "")
+                                .lineLimit(nil)
+                                .onCondition(fieldViewModel?.background != nil) { view in
+                                    view.background(fieldViewModel?.background!)
+                                }
+                        }
                     }
                 }
             }
@@ -159,6 +161,29 @@ struct TerminalView: View {
         }
     }
     
+    private func onFieldClicked(fieldId: UUID) {
+        if selectMultiFields {
+            if selectedFields.contains(fieldId) {
+                selectedFields.remove(fieldId)
+                if selectedField == fieldId {
+                    selectedField = nil
+                }
+            } else {
+                selectedFields.insert(fieldId)
+                selectedField = fieldId
+            }
+        } else {
+            if selectedField == fieldId {
+                selectedField = nil
+                selectedFields.removeAll()
+            } else {
+                selectedField = fieldId
+                selectedFields.removeAll()
+                selectedFields.insert(fieldId)
+            }
+        }
+    }
+    
     private func clearTerminal() {
         
         if let selectedLine = selectedLine {
@@ -181,9 +206,10 @@ struct TerminalView: View {
     private func applyVisibleFields() {
         // Save column settings
         
-        appendMatchedTerminalLines()
+        terminalConfig.visibleFields.removeAll()
+        terminalConfig.visibleFields.append(contentsOf: visibleFields)
         
-        terminalConfig.visibleFields = visibleFields
+        appendMatchedTerminalLines()
     }
     
     private func appendMatchedTerminalLines() {

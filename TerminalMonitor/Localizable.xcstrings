@@ -60,6 +60,9 @@
     "Directory" : {
 
     },
+    "Duplicate" : {
+
+    },
     "Edit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -137,6 +140,9 @@
         }
       }
     },
+    "Rename" : {
+
+    },
     "Restart" : {
 
     },
@@ -151,6 +157,9 @@
       }
     },
     "Save Workspace" : {
+
+    },
+    "Select" : {
 
     },
     "Start" : {

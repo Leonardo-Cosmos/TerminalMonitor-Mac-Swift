@@ -7,13 +7,13 @@
 
 import Foundation
 
-class FieldDisplayConfig: Identifiable {
+class FieldDisplayConfig: Identifiable, ObservableObject {
     
     let id: UUID
     
-    var fieldKey: String
+    @Published var fieldKey: String
     
-    var hidden: Bool
+    @Published var hidden: Bool
     
     var headerName: String?
     
