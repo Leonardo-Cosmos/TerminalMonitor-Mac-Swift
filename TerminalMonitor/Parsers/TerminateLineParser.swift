@@ -2,7 +2,7 @@
 //  TerminateLineParser.swift
 //  TerminalMonitor
 //
-//  Created by Leximus on 5/28/25.
+//  Created on 2025/5/28.
 //
 
 import Foundation
@@ -25,8 +25,16 @@ class TerminateLineParser {
             "execution": execution,
         ]
         
+        let jsonDict: [String: Any]
+        if JsonParser.isJson(text: text) {
+            jsonDict = JsonParser.parseText(text: text)
+        } else {
+            jsonDict = [:]
+        }
+        
         var lineFieldDict: [String: TerminalLineField] = [:]
         mergeTerminateLineDict(unionDict: &lineFieldDict, partialDict: systemFieldDict, keyPrefix: "system")
+        mergeTerminateLineDict(unionDict: &lineFieldDict, partialDict: jsonDict, keyPrefix: "json")
         
         return TerminalLine(
             id: id,
