@@ -49,16 +49,18 @@ struct TerminalView: View {
                 HStack {
                     ForEach(visibleFields) { fieldDisplayConfig in
                         Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
-                            Text(fieldDisplayConfig.fieldKey)
-                            //                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
-                                .background(selectedFields.contains(fieldDisplayConfig.id) ?  Color(nsColor: NSColor.selectedControlColor) : .clear)
-                            //                                .padding(.horizontal, 4)
-                            //                                .padding(.vertical, 4)
-                            //                                .padding()
+                            HStack {
+                                Text(fieldDisplayConfig.fieldDescription)
+                                //                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
+                                    .background(selectedFields.contains(fieldDisplayConfig.id) ?  Color(nsColor: NSColor.selectedControlColor) : .clear)
+                                //                                .padding(.horizontal, 4)
+                                //                                .padding(.vertical, 4)
+                                //                                .padding()
+                            }
                         }
                         .contextMenu {
                             Button("Edit", systemImage: "pencil") {
-                                
+                                FieldListHelper.openFieldConfigWindow(fieldConfig: fieldDisplayConfig)
                             }
                             .labelStyle(.titleAndIcon)
                         }
@@ -110,24 +112,20 @@ struct TerminalView: View {
                         selectMultiFields.toggle()
                     }
                     .labelStyle(.iconOnly)
+                    .help(selectMultiFields ? "Multiple Selection" : "Single Selection")
                     
                     Button("Apply", systemImage: "checkmark") {
                         applyVisibleFields()
                     }
                     .labelStyle(.iconOnly)
+                    .help("Apply Field Changes")
                 }
             })
-            .contextMenu {
-                Button("Add", systemImage: "plus") {
-                    
-                }
-                .labelStyle(.titleAndIcon)
-            }
             
             Table(lineViewModels, selection: $selectedLine) {
                 TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
                     if !fieldDisplayConfig.hidden {
-                        TableColumn(fieldDisplayConfig.headerName ?? fieldDisplayConfig.fieldKey) { (lineViewModel: TerminalLineViewModel) in
+                        TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
                             let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
                             Text(fieldViewModel?.text ?? "")
                                 .lineLimit(nil)

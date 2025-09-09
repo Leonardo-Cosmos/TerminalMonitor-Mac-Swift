@@ -42,11 +42,21 @@ struct FieldDisplayDetailView: View {
             }
             .padding()
             
-            Button("Save") {
-                onSave?()
-                window?.close()
+            HStack {
+                Button("Cancel") {
+                    window?.close()
+                }
+                .keyboardShortcut(.cancelAction)
+                
+                Button("Save") {
+                    onSave?()
+                    window?.close()
+                }
+                .keyboardShortcut(.defaultAction)
             }
             .padding()
+            
+            
         }
         .frame(minWidth: 400)
     }

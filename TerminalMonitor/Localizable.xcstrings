@@ -33,6 +33,9 @@
     "Apply" : {
 
     },
+    "Apply Field Changes" : {
+
+    },
     "Arguments" : {
 
     },
@@ -122,6 +125,9 @@
     "Move Right" : {
 
     },
+    "Multiple Selection" : {
+
+    },
     "Name" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -172,6 +178,9 @@
 
     },
     "Select" : {
+
+    },
+    "Single Selection" : {
 
     },
     "Start" : {
