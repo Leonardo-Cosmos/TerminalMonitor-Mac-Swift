@@ -23,27 +23,40 @@ struct TerminalTabView: View {
     
     @EnvironmentObject private var workspaceConfig: WorkspaceConfig
     
-    @State private var selectedTab: UUID?
+    @State private var selectedTerminal: UUID?
     
     @State private var hoveringTab: UUID?
+    
+    @State private var renamingTerminalId: UUID?
+    
+    @State private var renamingTerminalName: String = ""
+    
+    @State private var showRenameSheet: Bool = false
     
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
                 ForEach(workspaceConfig.terminals) { terminalConfig in
-                    Button(action: {
-                        selectedTab = terminalConfig.id
-                    }) {
+                    HStack {
+                        Button(action: { removeTerminal(terminalId: terminalConfig.id) }) {
+                            Label("Close", systemImage: "xmark")
+                                .labelStyle(.iconOnly)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.leading, 4)
+                        
                         Text(terminalConfig.name)
                             .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .border(.black, width: 0.5)
-                            .background(tabBackground(terminalConfig.id))
+                            .padding(.trailing, 8)
                     }
+                    .border(.black, width: 0.5)
+                    .background(tabBackground(terminalConfig.id))
                     .padding(.horizontal, -4)
                     .padding(.vertical, -8)
-                    .buttonStyle(PlainButtonStyle())
-                    
+                    .onTapGesture {
+                        selectedTerminal = terminalConfig.id
+//                        selectedTerminal = terminalConfig
+                    }
                     .onHover { hovering in
                         if hovering {
                             hoveringTab = terminalConfig.id
@@ -53,18 +66,53 @@ struct TerminalTabView: View {
                             }
                         }
                     }
+                    .contextMenu {
+                        Button("Move Left", systemImage: "arrowshape.left.fill") {
+                            moveTerminalLeft(terminalId: terminalConfig.id)
+                        }
+                        .labelStyle(.titleAndIcon)
+                        
+                        Button("Move Right", systemImage: "arrowshape.right.fill") {
+                            moveTerminalRight(terminalId: terminalConfig.id)
+                        }
+                        .labelStyle(.titleAndIcon)
+                        
+                        Button("Rename") {
+                            onRenamingTerminal(terminalId: terminalConfig.id)
+                        }
+                        .labelStyle(.titleOnly)
+                        
+                        Button("Duplicate") {
+                            
+                        }
+                        .labelStyle(.titleOnly)
+                    }
+                    .sheet(isPresented: $showRenameSheet) {
+                        TextInputView(isPresented: $showRenameSheet, text: renamingTerminalName, onComplete: onRenamedTerminal)
+                    }
                 }
+                
+                Button(action: { appendTerminal() }) {
+                    Label("Add", systemImage: "plus")
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .border(.black, width: 0.5)
+                        .labelStyle(.iconOnly)
+                }
+                .padding(.horizontal, -4)
+                .padding(.vertical, -8)
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(0)
             
             Divider()
                 .padding(0)
             
-            Group {
-                if let terminalConfig = workspaceConfig.getTerminal(id: selectedTab) {
+            ZStack {
+                ForEach(workspaceConfig.terminals) { terminalConfig in
                     TerminalView(terminalConfig: terminalConfig)
-                } else {
-                    EmptyView()
+                        .background(Color(nsColor: NSColor.windowBackgroundColor))
+                        .zIndex(selectedTerminal == terminalConfig.id ? 1 : 0)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -77,7 +125,7 @@ struct TerminalTabView: View {
             .labelStyle(.iconOnly)
         }
         .onAppear {
-            selectedTab = workspaceConfig.terminals.first?.id
+            selectedTerminal = workspaceConfig.terminals.first?.id
             
             terminalLineProducer.startedHandler = {
                 timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
@@ -118,7 +166,7 @@ struct TerminalTabView: View {
     }
     
     private func tabBackground(_ tabId: UUID) -> Color {
-        if selectedTab == tabId {
+        if selectedTerminal == tabId {
             return Self.selectedTabBackground
         } else if hoveringTab == tabId {
             return Color.gray.opacity(0.2)
@@ -155,6 +203,25 @@ struct TerminalTabView: View {
             let terminalCount = workspaceConfig.terminals.count
             let terminalConfig = workspaceConfig.terminals.remove(at: index)
             workspaceConfig.terminals.insert(terminalConfig, at: (index + 1) % terminalCount)
+        }
+    }
+    
+    private func onRenamingTerminal(terminalId: UUID) {
+        if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
+            renamingTerminalId = terminalId
+            renamingTerminalName = terminalConfig.name
+            showRenameSheet = true
+        }
+    }
+    
+    private func onRenamedTerminal(result: TextInputResult) {
+        switch result {
+        case .cancelled:
+            break
+        case .saved(let text):
+            if let terminalConfig = workspaceConfig.getTerminal(id: renamingTerminalId) {
+                terminalConfig.name = text
+            }
         }
     }
     

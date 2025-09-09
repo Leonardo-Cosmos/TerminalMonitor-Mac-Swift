@@ -42,7 +42,16 @@
     "Browse" : {
 
     },
+    "Cancel" : {
+
+    },
     "Clear" : {
+
+    },
+    "Clear All until This" : {
+
+    },
+    "Close" : {
 
     },
     "Close Workspace" : {
@@ -73,6 +82,9 @@
           }
         }
       }
+    },
+    "Enter text" : {
+
     },
     "Execution" : {
 
