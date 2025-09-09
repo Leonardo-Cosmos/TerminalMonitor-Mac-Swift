@@ -23,8 +23,14 @@ struct TerminalView: View {
     
     @State private var visibleFields: [FieldDisplayConfig] = []
     
+    /**
+     A dictionary containing matching result of each line.
+     */
     @State private var lineFilterDict: [UUID: Bool] = [:]
     
+    /**
+     A list of all matched lines.
+     */
     @State private var shownLines: [TerminalLine] = []
     
     @State private var isFieldsListExpanded = true
@@ -58,41 +64,36 @@ struct TerminalView: View {
                         }
                     }
                 }
+                .padding(2)
             }, label: {
                 HStack {
                     Text("Fields")
                     
                     Button("Add", systemImage: "plus") {
-                        FieldListHelper.openFieldConfigWindow { fieldConfig in
-                            FieldListHelper.addFieldConfig(fieldConfig: fieldConfig, fieldConfigs: &visibleFields, replacing: nil)
-                        }
+                        addField()
                     }
                     .labelStyle(.iconOnly)
                     
                     Button("Remove", systemImage: "minus") {
-                        if let fieldId = selectedField {
-                            FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
-                        }
+                        removeSelectedField()
                     }
                     .labelStyle(.iconOnly)
                     .disabled(selectedFields.isEmpty)
                     
                     Button("Edit", systemImage: "pencil") {
-                        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedField }) {
-                            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
-                        }
+                        editSelectedField()
                     }
                     .labelStyle(.iconOnly)
                     .disabled(selectedFields.isEmpty)
                     
                     Button("Move Left", systemImage: "arrowshape.left.fill") {
-                        
+                        moveSelectedFieldsLeft()
                     }
                     .labelStyle(.iconOnly)
                     .disabled(selectedFields.isEmpty)
                     
                     Button("Move Right", systemImage: "arrowshape.right.fill") {
-                        
+                        moveSelectedFieldsRight()
                     }
                     .labelStyle(.iconOnly)
                     .disabled(selectedFields.isEmpty)
@@ -138,11 +139,11 @@ struct TerminalView: View {
                 }
             }
         }
-        .toolbar {
-            Button("Clear", systemImage: "trash") {
+        .contextMenu {
+            Button("Clear All until This") {
                 clearTerminal()
             }
-            .labelStyle(.iconOnly)
+            .labelStyle(.titleOnly)
         }
         .onAppear {
             visibleFields = terminalConfig.visibleFields
@@ -157,7 +158,13 @@ struct TerminalView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesRemovedEvent)) { notification in
-            filterTerminal()
+            if let terminalLines = notification.userInfo?[NotificationUserInfoKey.terminalLines] as? [TerminalLine] {
+                
+                removeClearedTerminalLines(terminalLines: terminalLines)
+                
+            } else {
+                Self.logger.error("Missing userInfo in \(Notification.Name.terminalLinesRemovedEvent.rawValue)")
+            }
         }
     }
     
@@ -184,6 +191,38 @@ struct TerminalView: View {
         }
     }
     
+    private func addField() {
+        FieldListHelper.openFieldConfigWindow { fieldConfig in
+            FieldListHelper.addFieldConfig(fieldConfig: fieldConfig, fieldConfigs: &visibleFields, replacing: nil)
+        }
+    }
+    
+    private func removeSelectedField() {
+        if let fieldId = selectedField {
+            FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
+        }
+    }
+    
+    private func editSelectedField() {
+        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedField }) {
+            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
+        }
+    }
+    
+    private func moveSelectedFieldsLeft() {
+        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
+        for selectedField in selectedFields {
+            FieldListHelper.moveFieldConfigLeft(fieldId: selectedField.id, fieldConfigs: &visibleFields)
+        }
+    }
+    
+    private func moveSelectedFieldsRight() {
+        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
+        for selectedField in selectedFields {
+            FieldListHelper.moveFieldConfigRight(fieldId: selectedField.id, fieldConfigs: &visibleFields)
+        }
+    }
+    
     private func clearTerminal() {
         
         if let selectedLine = selectedLine {
@@ -198,6 +237,20 @@ struct TerminalView: View {
         }
     }
     
+    private func removeClearedTerminalLines(terminalLines: [TerminalLine]) {
+        let removedLineIdSet = Set(terminalLines.map { $0.id })
+        
+        for lineId in removedLineIdSet {
+            lineFilterDict.removeValue(forKey: lineId)
+        }
+        
+        let remainingLines = shownLines.filter { !removedLineIdSet.contains($0.id) }
+        shownLines.removeAll()
+        shownLines.append(contentsOf: remainingLines)
+        
+        lineViewModels.removeAll(where: { removedLineIdSet.contains($0.id) })
+    }
+    
     private func filterTerminal() {
         
         appendMatchedTerminalLines()
@@ -208,6 +261,8 @@ struct TerminalView: View {
         
         terminalConfig.visibleFields.removeAll()
         terminalConfig.visibleFields.append(contentsOf: visibleFields)
+        
+        lineViewModels.removeAll()
         
         appendMatchedTerminalLines()
     }
@@ -270,6 +325,30 @@ struct FieldListHelper {
     static func removeFieldConfig(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
         
         fieldConfigs.removeAll() { field in field.id == fieldId }
+    }
+    
+    static func moveFieldConfigLeft(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex - 1 + fieldConfigs.count) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
+    }
+    
+    static func moveFieldConfigRight(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex + 1) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
     }
 }
 

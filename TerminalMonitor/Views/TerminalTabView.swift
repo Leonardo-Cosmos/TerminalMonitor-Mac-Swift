@@ -17,6 +17,8 @@ struct TerminalTabView: View {
     
     @State private var terminalLineContainer: TerminalLineContainer = TerminalLineSupervisor.shared
     
+    @State private var terminalLineViewer: TerminalLineViewer = TerminalLineSupervisor.shared
+    
     @State private var timer: Timer?
     
     @EnvironmentObject private var workspaceConfig: WorkspaceConfig
@@ -68,6 +70,12 @@ struct TerminalTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding()
+        .toolbar {
+            Button("Clear", systemImage: "trash") {
+                clearTerminal()
+            }
+            .labelStyle(.iconOnly)
+        }
         .onAppear {
             selectedTab = workspaceConfig.terminals.first?.id
             
@@ -117,6 +125,41 @@ struct TerminalTabView: View {
         } else {
             return Color.clear
         }
+    }
+    
+    private func appendTerminal() {
+        
+        let terminalConfig = TerminalConfig(name: "New")
+        workspaceConfig.terminals.append(terminalConfig)
+    }
+    
+    private func removeTerminal(terminalId: UUID) {
+        
+        workspaceConfig.terminals.removeAll(where: { $0.id == terminalId })
+    }
+    
+    private func moveTerminalLeft(terminalId: UUID) {
+        
+        if let index = workspaceConfig.terminals.firstIndex(where: { $0.id == terminalId}) {
+            
+            let terminalCount = workspaceConfig.terminals.count
+            let terminalConfig = workspaceConfig.terminals.remove(at: index)
+            workspaceConfig.terminals.insert(terminalConfig, at: (index - 1 + terminalCount) % terminalCount)
+        }
+    }
+    
+    private func moveTerminalRight(terminalId: UUID) {
+        
+        if let index = workspaceConfig.terminals.firstIndex(where: { $0.id == terminalId}) {
+            
+            let terminalCount = workspaceConfig.terminals.count
+            let terminalConfig = workspaceConfig.terminals.remove(at: index)
+            workspaceConfig.terminals.insert(terminalConfig, at: (index + 1) % terminalCount)
+        }
+    }
+    
+    private func clearTerminal() {
+        terminalLineViewer.removeTerminalLinesUntilLast()
     }
 }
 

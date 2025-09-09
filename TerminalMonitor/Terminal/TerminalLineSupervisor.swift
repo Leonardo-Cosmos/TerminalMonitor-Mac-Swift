@@ -34,6 +34,13 @@ class TerminalLineSupervisor: TerminalLineContainer, TerminalLineViewer {
         onTerminalLinesRemoved(terminalLines: removedTerminalLines)
     }
     
+    func removeTerminalLinesUntilLast() {
+        let removedTerminalLines = Array(terminalLines[0...])
+        terminalLines = []
+        
+        onTerminalLinesRemoved(terminalLines: removedTerminalLines)
+    }
+    
     private func onTerminalLinesAppended(terminalLines: [TerminalLine]) {
         
         terminalLinesAppendedHandler?(terminalLines)

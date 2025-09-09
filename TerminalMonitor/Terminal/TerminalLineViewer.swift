@@ -11,5 +11,7 @@ protocol TerminalLineViewer {
     
     func removeTerminalLinesUtil(terminalLineId: UUID)
     
+    func removeTerminalLinesUntilLast()
+    
     var terminalLines: [TerminalLine] { get }
 }
