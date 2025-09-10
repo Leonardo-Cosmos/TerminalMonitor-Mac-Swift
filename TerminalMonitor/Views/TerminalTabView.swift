@@ -81,11 +81,6 @@ struct TerminalTabView: View {
                             onRenamingTerminal(terminalId: terminalConfig.id)
                         }
                         .labelStyle(.titleOnly)
-                        
-                        Button("Duplicate") {
-                            
-                        }
-                        .labelStyle(.titleOnly)
                     }
                     .sheet(isPresented: $showRenameSheet) {
                         TextInputView(isPresented: $showRenameSheet, text: renamingTerminalName, onComplete: onRenamedTerminal)
