@@ -1,8 +1,8 @@
 //
-//  TerminalLineArraySupervisor.swift
+//  TerminalLineSupervisor.swift
 //  TerminalMonitor
 //
-//  Created on 6/20/25.
+//  Created on 2025/6/20.
 //
 
 import Foundation

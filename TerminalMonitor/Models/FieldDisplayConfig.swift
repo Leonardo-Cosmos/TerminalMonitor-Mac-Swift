@@ -1,5 +1,5 @@
 //
-//  FieldDisplayDetail.swift
+//  FieldDisplayConfig.swift
 //  TerminalMonitor
 //
 //  Created on 2025/6/18.
