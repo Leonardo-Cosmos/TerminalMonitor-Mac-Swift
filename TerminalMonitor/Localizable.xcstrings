@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27,6 +30,12 @@
     "Add Command" : {
 
     },
+    "Apply" : {
+
+    },
+    "Apply Field Changes" : {
+
+    },
     "Arguments" : {
 
     },
@@ -36,10 +45,22 @@
     "Browse" : {
 
     },
+    "Cancel" : {
+
+    },
     "Clear" : {
 
     },
+    "Clear All until This" : {
+
+    },
+    "Close" : {
+
+    },
     "Close Workspace" : {
+
+    },
+    "Column header" : {
 
     },
     "Command" : {
@@ -62,10 +83,31 @@
         }
       }
     },
+    "Enter text" : {
+
+    },
     "Execution" : {
 
     },
+    "Field Key" : {
+
+    },
+    "Fields" : {
+
+    },
     "Full path of the executable file" : {
+
+    },
+    "Full path of the field" : {
+
+    },
+    "Header" : {
+
+    },
+    "Hello, World!" : {
+
+    },
+    "Hide this column" : {
 
     },
     "It has been started already" : {
@@ -73,6 +115,15 @@
     },
     "It has not been started yet" : {
       "comment" : "Error when terminate an execution that has not been started yet"
+    },
+    "Move Left" : {
+
+    },
+    "Move Right" : {
+
+    },
+    "Multiple Selection" : {
+
     },
     "Name" : {
       "extractionState" : "stale",
@@ -104,6 +155,9 @@
         }
       }
     },
+    "Rename" : {
+
+    },
     "Restart" : {
 
     },
@@ -118,6 +172,12 @@
       }
     },
     "Save Workspace" : {
+
+    },
+    "Select" : {
+
+    },
+    "Single Selection" : {
 
     },
     "Start" : {

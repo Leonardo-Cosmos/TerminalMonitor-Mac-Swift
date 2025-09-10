@@ -24,4 +24,8 @@ extension Notification.Name {
     static let executionStartedEvent = Notification.Name("executionStartedEvent")
     
     static let executionExitedEvent = Notification.Name("executionExitedEvent")
+    
+    static let terminalLinesAppendedEvent = Notification.Name("terminalLinesAppendedEvent")
+    
+    static let terminalLinesRemovedEvent = Notification.Name("terminalLinesRemovedEvent")
 }

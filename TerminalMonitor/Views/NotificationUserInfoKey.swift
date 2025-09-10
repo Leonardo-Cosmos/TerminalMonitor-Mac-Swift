@@ -14,4 +14,6 @@ struct NotificationUserInfoKey {
     static let command = "command"
     
     static let execution = "execution"
+    
+    static let terminalLines = "terminalLines"
 }

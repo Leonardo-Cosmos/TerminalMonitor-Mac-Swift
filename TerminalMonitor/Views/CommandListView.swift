@@ -142,7 +142,7 @@ struct CommandListViewHelper {
             get: { commandConfig },
             set: { commandConfig = $0 }
         )) {
-            workspaceConfig.append(commandConfig)
+            workspaceConfig.appendCommand(commandConfig)
         }
     }
     
@@ -153,7 +153,7 @@ struct CommandListViewHelper {
     
     static func removeCommandConfig(commandId: UUID, workspaceConfig: WorkspaceConfig) {
         
-        workspaceConfig.delete(id: commandId)
+        workspaceConfig.deleteCommand(id: commandId)
     }
     
     static func startCommand(_ commandConfig: CommandConfig) {
@@ -190,14 +190,4 @@ fileprivate class CommandDropDelegate: ListItemDropDelegate<CommandConfig, UUID>
         appViewModel: AppViewModel()
     )
     .environmentObject(previewWorkspaceConfig())
-}
-
-func previewWorkspaceConfig() -> WorkspaceConfig {
-    let workspaceConfig = WorkspaceConfig()
-    workspaceConfig.commands = [
-        CommandConfig(name: "Console"),
-        CommandConfig(name: "Application"),
-        CommandConfig(name: "Tool"),
-    ]
-    return workspaceConfig
 }

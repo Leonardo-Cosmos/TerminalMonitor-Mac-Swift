@@ -2,7 +2,7 @@
 //  TerminateLineParser.swift
 //  TerminalMonitor
 //
-//  Created by Leximus on 5/28/25.
+//  Created on 2025/5/28.
 //
 
 import Foundation
@@ -10,6 +10,8 @@ import Foundation
 class TerminateLineParser {
     
     private static let keySeparator = "."
+    
+    private static let dateFormatter = defaultDateFormatter()
     
     static func parseTerminalLine(text: String, execution: String) -> TerminalLine {
         
@@ -23,8 +25,16 @@ class TerminateLineParser {
             "execution": execution,
         ]
         
+        let jsonDict: [String: Any]
+        if JsonParser.isJson(text: text) {
+            jsonDict = JsonParser.parseText(text: text)
+        } else {
+            jsonDict = [:]
+        }
+        
         var lineFieldDict: [String: TerminalLineField] = [:]
         mergeTerminateLineDict(unionDict: &lineFieldDict, partialDict: systemFieldDict, keyPrefix: "system")
+        mergeTerminateLineDict(unionDict: &lineFieldDict, partialDict: jsonDict, keyPrefix: "json")
         
         return TerminalLine(
             id: id,
@@ -52,6 +62,19 @@ class TerminateLineParser {
         guard let value = value else {
             return "%null%"
         }
+        
+        if let date = value as? Date {
+            return dateFormatter.string(from: date)
+        }
+        
         return "\(value)"
+    }
+    
+    private static func defaultDateFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        formatter.timeZone = .current
+        return formatter
     }
 }
