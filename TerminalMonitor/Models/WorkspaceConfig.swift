@@ -43,6 +43,15 @@ class WorkspaceConfig: ObservableObject {
         }
     }
     
+    func insertTerminal(_ terminalConfig: TerminalConfig, nextTo id: UUID) {
+        let index = terminals.firstIndex { command in command.id == id }
+        if let index = index {
+            terminals.insert(terminalConfig, at: index + 1)
+        } else {
+            terminals.append(terminalConfig)
+        }
+    }
+    
     func deleteTerminal(id: UUID) {
         terminals.removeAll() { terminal in terminal.id == id}
     }

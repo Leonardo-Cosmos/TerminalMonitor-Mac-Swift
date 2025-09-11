@@ -27,18 +27,22 @@ struct TerminalTabView: View {
     
     @State private var hoveringTab: UUID?
     
+    @State private var closingTerminalId: UUID?
+    
+    @State private var closingTerminalName: String = ""
+    
     @State private var renamingTerminalId: UUID?
     
     @State private var renamingTerminalName: String = ""
     
-    @State private var showRenameSheet: Bool = false
+    @State private var showSheet: Bool = false
     
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
                 ForEach(workspaceConfig.terminals) { terminalConfig in
                     HStack {
-                        Button(action: { removeTerminal(terminalId: terminalConfig.id) }) {
+                        Button(action: { onClosingTerminal(terminalId: terminalConfig.id) }) {
                             Label("Close", systemImage: "xmark")
                                 .labelStyle(.iconOnly)
                         }
@@ -55,7 +59,6 @@ struct TerminalTabView: View {
                     .padding(.vertical, -8)
                     .onTapGesture {
                         selectedTerminal = terminalConfig.id
-//                        selectedTerminal = terminalConfig
                     }
                     .onHover { hovering in
                         if hovering {
@@ -81,9 +84,22 @@ struct TerminalTabView: View {
                             onRenamingTerminal(terminalId: terminalConfig.id)
                         }
                         .labelStyle(.titleOnly)
+                        
+                        Button("Duplicate") {
+                            duplicateTerminal(terminalId: terminalConfig.id)
+                        }
+                        .labelStyle(.titleOnly)
                     }
-                    .sheet(isPresented: $showRenameSheet) {
-                        TextInputView(isPresented: $showRenameSheet, text: renamingTerminalName, onComplete: onRenamedTerminal)
+                    .sheet(isPresented: $showSheet) {
+                        if closingTerminalId != nil {
+                            ConfirmView(isPresented: $showSheet,
+                                        message: closeTerminalMessage(terminalName: closingTerminalName),
+                                        onSubmit: onClosedTerminal)
+                        } else if renamingTerminalId != nil {
+                            TextInputView(isPresented: $showSheet,
+                                          text: renamingTerminalName,
+                                          onComplete: onRenamedTerminal)
+                        }
                     }
                 }
                 
@@ -176,9 +192,28 @@ struct TerminalTabView: View {
         workspaceConfig.terminals.append(terminalConfig)
     }
     
-    private func removeTerminal(terminalId: UUID) {
+    private func closeTerminalMessage(terminalName: String) -> String {
+        let format = NSLocalizedString("CloseTerminalMessage", comment: "Message in popup sheet when terminal is about to closed")
+        return String(format: format, terminalName)
+    }
+    
+    private func onClosingTerminal(terminalId: UUID) {
         
-        workspaceConfig.terminals.removeAll(where: { $0.id == terminalId })
+        if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
+            closingTerminalId = terminalId
+            closingTerminalName = terminalConfig.name
+            showSheet = true
+        }
+    }
+    
+    private func onClosedTerminal(confirmed: Bool) {
+        if confirmed {
+            if let closingTerminalId = closingTerminalId {
+                workspaceConfig.deleteTerminal(id: closingTerminalId)
+            }
+        }
+        closingTerminalId = nil
+        closingTerminalName = ""
     }
     
     private func moveTerminalLeft(terminalId: UUID) {
@@ -205,7 +240,7 @@ struct TerminalTabView: View {
         if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
             renamingTerminalId = terminalId
             renamingTerminalName = terminalConfig.name
-            showRenameSheet = true
+            showSheet = true
         }
     }
     
@@ -217,6 +252,20 @@ struct TerminalTabView: View {
             if let terminalConfig = workspaceConfig.getTerminal(id: renamingTerminalId) {
                 terminalConfig.name = text
             }
+        }
+        renamingTerminalId = nil
+        renamingTerminalName = ""
+    }
+    
+    private func duplicateTerminal(terminalId: UUID) {
+        if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
+            let duplicatedTerminal = terminalConfig.copy() as! TerminalConfig
+            
+            let format = NSLocalizedString("DuplicatedTerminalName", comment: "Name format of dupliated terminal")
+            let terminalName = String(format: format, duplicatedTerminal.name)
+            duplicatedTerminal.name = terminalName
+            
+            workspaceConfig.insertTerminal(duplicatedTerminal, nextTo: terminalId)
         }
     }
     

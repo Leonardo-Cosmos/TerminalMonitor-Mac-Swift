@@ -60,6 +60,17 @@
     "Close Workspace" : {
 
     },
+    "CloseTerminalMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you want to close tab %@? All settings in this tab will be deleted."
+          }
+        }
+      }
+    },
     "Column header" : {
 
     },
@@ -71,6 +82,20 @@
     },
     "Directory" : {
 
+    },
+    "Duplicate" : {
+
+    },
+    "DuplicatedTerminalName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (Copy)"
+          }
+        }
+      }
     },
     "Edit" : {
       "extractionState" : "manual",
@@ -116,6 +141,9 @@
     "It has not been started yet" : {
       "comment" : "Error when terminate an execution that has not been started yet"
     },
+    "Key" : {
+      "extractionState" : "manual"
+    },
     "Move Left" : {
 
     },
@@ -140,6 +168,9 @@
 
     },
     "New Workspace..." : {
+
+    },
+    "No" : {
 
     },
     "Open Workspace..." : {
@@ -190,6 +221,9 @@
 
     },
     "Unique name of the command" : {
+
+    },
+    "Yes" : {
 
     }
   },

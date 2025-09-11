@@ -60,6 +60,9 @@ struct TerminalView: View {
             }
             .labelStyle(.titleOnly)
         }
+        .onAppear {
+            appendMatchedTerminalLines()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
             if let terminalLines = notification.userInfo?[NotificationUserInfoKey.terminalLines] as? [TerminalLine] {
                 
