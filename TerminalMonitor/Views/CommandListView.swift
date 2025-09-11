@@ -58,6 +58,11 @@ struct CommandListView: View {
                 }
                 .labelStyle(.titleAndIcon)
                 
+                Button("Duplicate", systemImage: "plus.square.on.square") {
+                    CommandListViewHelper.duplicateCommandConfig(commandId: command.id, workspaceConfig: workspaceConfig)
+                }
+                .labelStyle(.titleAndIcon)
+                
                 Divider()
                 
                 Button("Add", systemImage: "plus") {
@@ -154,6 +159,18 @@ struct CommandListViewHelper {
     static func removeCommandConfig(commandId: UUID, workspaceConfig: WorkspaceConfig) {
         
         workspaceConfig.deleteCommand(id: commandId)
+    }
+    
+    static func duplicateCommandConfig(commandId: UUID, workspaceConfig: WorkspaceConfig) {
+        if let commandConfig = workspaceConfig.getCommand(id: commandId) {
+            let duplicatedCommand = commandConfig.copy() as! CommandConfig
+            
+            let format = NSLocalizedString("DuplicatedConfigName", comment: "Name format of dupliated command")
+            let duplicatedName = String(format: format, duplicatedCommand.name)
+            duplicatedCommand.name = duplicatedName
+            
+            workspaceConfig.insertCommand(duplicatedCommand, nextTo: commandId)
+        }
     }
     
     static func startCommand(_ commandConfig: CommandConfig) {

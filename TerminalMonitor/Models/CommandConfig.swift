@@ -7,7 +7,7 @@
 
 import Foundation
 
-class CommandConfig: Identifiable, ObservableObject {
+class CommandConfig: Identifiable, ObservableObject, NSCopying {
     
     let id: UUID
     
@@ -35,6 +35,15 @@ class CommandConfig: Identifiable, ObservableObject {
             executableFile: executableFile,
             arguments: arguments,
             currentDirectory: currentDirectory
+        )
+    }
+    
+    func copy(with zone: NSZone? = nil) -> Any {
+        CommandConfig(
+            name: self.name,
+            executableFile: executableFile,
+            arguments: arguments,
+            currentDirectory: currentDirectory,
         )
     }
 }
