@@ -27,6 +27,8 @@ struct TerminalTabView: View {
     
     @State private var hoveringTab: UUID?
     
+    @State private var isClosingLastTerminal: Bool = false
+    
     @State private var closingTerminalId: UUID?
     
     @State private var closingTerminalName: String = ""
@@ -80,19 +82,25 @@ struct TerminalTabView: View {
                         }
                         .labelStyle(.titleAndIcon)
                         
-                        Button("Rename") {
+                        Button("Rename", systemImage: "pencil") {
                             onRenamingTerminal(terminalId: terminalConfig.id)
                         }
-                        .labelStyle(.titleOnly)
+                        .labelStyle(.titleAndIcon)
                         
-                        Button("Duplicate") {
+                        Button("Duplicate", systemImage: "plus.square.on.square") {
                             duplicateTerminal(terminalId: terminalConfig.id)
                         }
-                        .labelStyle(.titleOnly)
+                        .labelStyle(.titleAndIcon)
                     }
                     .sheet(isPresented: $showSheet) {
-                        if closingTerminalId != nil {
+                        if isClosingLastTerminal {
                             ConfirmView(isPresented: $showSheet,
+                                        style: .Ok,
+                                        message: closeLastTerminalMessage(),
+                                        onSubmit: { _ in onCloseLastTerminalDenied() })
+                        } else if closingTerminalId != nil {
+                            ConfirmView(isPresented: $showSheet,
+                                        style: .YesAndNo,
                                         message: closeTerminalMessage(terminalName: closingTerminalName),
                                         onSubmit: onClosedTerminal)
                         } else if renamingTerminalId != nil {
@@ -193,17 +201,30 @@ struct TerminalTabView: View {
     }
     
     private func closeTerminalMessage(terminalName: String) -> String {
-        let format = NSLocalizedString("CloseTerminalMessage", comment: "Message in popup sheet when terminal is about to closed")
+        let format = NSLocalizedString("CloseTerminalMessage", comment: "Message in popup sheet when close terminal")
         return String(format: format, terminalName)
     }
     
+    private func closeLastTerminalMessage() -> String {
+        NSLocalizedString("CloseLastTerminalMessage", comment: "Message in popup sheet when close last terminal")
+    }
+    
     private func onClosingTerminal(terminalId: UUID) {
+        guard workspaceConfig.terminals.count > 1 else {
+            isClosingLastTerminal = true
+            showSheet = true
+            return
+        }
         
         if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
             closingTerminalId = terminalId
             closingTerminalName = terminalConfig.name
             showSheet = true
         }
+    }
+    
+    private func onCloseLastTerminalDenied() {
+        isClosingLastTerminal = false
     }
     
     private func onClosedTerminal(confirmed: Bool) {
@@ -261,9 +282,9 @@ struct TerminalTabView: View {
         if let terminalConfig = workspaceConfig.getTerminal(id: terminalId) {
             let duplicatedTerminal = terminalConfig.copy() as! TerminalConfig
             
-            let format = NSLocalizedString("DuplicatedTerminalName", comment: "Name format of dupliated terminal")
-            let terminalName = String(format: format, duplicatedTerminal.name)
-            duplicatedTerminal.name = terminalName
+            let format = NSLocalizedString("DuplicatedConfigName", comment: "Name format of dupliated terminal")
+            let duplicatedName = String(format: format, duplicatedTerminal.name)
+            duplicatedTerminal.name = duplicatedName
             
             workspaceConfig.insertTerminal(duplicatedTerminal, nextTo: terminalId)
         }

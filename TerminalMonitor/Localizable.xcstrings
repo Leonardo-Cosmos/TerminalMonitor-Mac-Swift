@@ -60,6 +60,17 @@
     "Close Workspace" : {
 
     },
+    "CloseLastTerminalMessage" : {
+      "comment" : "Message in popup sheet when close last terminal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The last terminal tab cannot be closed"
+          }
+        }
+      }
+    },
     "CloseTerminalMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -86,7 +97,7 @@
     "Duplicate" : {
 
     },
-    "DuplicatedTerminalName" : {
+    "DuplicatedConfigName" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -144,6 +155,9 @@
     "Key" : {
       "extractionState" : "manual"
     },
+    "Key 1" : {
+      "extractionState" : "manual"
+    },
     "Move Left" : {
 
     },
@@ -171,6 +185,9 @@
 
     },
     "No" : {
+
+    },
+    "OK" : {
 
     },
     "Open Workspace..." : {
