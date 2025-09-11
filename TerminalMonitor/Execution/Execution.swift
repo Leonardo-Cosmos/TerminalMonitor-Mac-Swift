@@ -111,9 +111,7 @@ class Execution {
         
         outputPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
-            if let outputString = String(data: data, encoding: .utf8) {
-                self.textPublisher.send(outputString)
-            }
+            self.publishProcessOutput(data: data)
         }
         
         let errorPipe = Pipe()
@@ -121,9 +119,7 @@ class Execution {
         
         errorPipe.fileHandleForReading.readabilityHandler = { fileHandle in
             let data = fileHandle.availableData
-            if let outputString = String(data: data, encoding: .utf8) {
-                self.textPublisher.send(outputString)
-            }
+            self.publishProcessOutput(data: data)
         }
         
         process.terminationHandler = { process in
@@ -136,6 +132,19 @@ class Execution {
         
         try process.run()
         Self.logger.debug("Execution (id: \(self.id)) is started")
+    }
+    
+    private func publishProcessOutput(data: Data) {
+        if let outputString = String(data: data, encoding: .utf8) {
+            if outputString.contains("\n") {
+                let lines = outputString.split(separator: "\n")
+                for line in lines {
+                    self.textPublisher.send(String(line))
+                }
+            } else {
+                self.textPublisher.send(outputString)
+            }
+        }
     }
     
     private func onCompleted(error: Error? = nil) {
