@@ -7,9 +7,13 @@
 
 import Foundation
 
-class TextStyleConfig {
+class TextStyleConfig: NSCopying {
     
     init() {
         
+    }
+    
+    func copy(with zone: NSZone? = nil) -> Any {
+        TextStyleConfig()
     }
 }

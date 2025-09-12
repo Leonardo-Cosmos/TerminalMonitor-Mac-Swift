@@ -7,7 +7,7 @@
 
 import Foundation
 
-class TerminalConfig: Identifiable, ObservableObject {
+class TerminalConfig: Identifiable, ObservableObject, NSCopying {
     
     let id: UUID
     
@@ -26,6 +26,13 @@ class TerminalConfig: Identifiable, ObservableObject {
             id: UUID(),
             name: name,
             visibleFields: visibleFields
+        )
+    }
+    
+    func copy(with zone: NSZone? = nil) -> Any {
+        TerminalConfig(
+            name: self.name,
+            visibleFields: self.visibleFields.map { $0.copy() as! FieldDisplayConfig }
         )
     }
     

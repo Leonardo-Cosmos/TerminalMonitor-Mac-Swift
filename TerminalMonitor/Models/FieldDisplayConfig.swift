@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FieldDisplayConfig: Identifiable, ObservableObject {
+class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
     
     let id: UUID
     
@@ -65,6 +65,16 @@ class FieldDisplayConfig: Identifiable, ObservableObject {
             self.fieldDescription = self.fieldKey
             self.fieldColumnHeader = self.fieldKey
         }
+    }
+    
+    func copy(with zone: NSZone? = nil) -> Any {
+        FieldDisplayConfig(
+            fieldKey: self.fieldKey,
+            hidden: self.hidden,
+            headerName: self.headerName,
+            customizeStyle: self.customizeStyle,
+            style: self.style.copy() as! TextStyleConfig,
+        )
     }
 }
 

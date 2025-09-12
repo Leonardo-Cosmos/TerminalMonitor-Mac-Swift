@@ -60,6 +60,28 @@
     "Close Workspace" : {
 
     },
+    "CloseLastTerminalMessage" : {
+      "comment" : "Message in popup sheet when close last terminal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The last terminal tab cannot be closed"
+          }
+        }
+      }
+    },
+    "CloseTerminalMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you want to close tab %@? All settings in this tab will be deleted."
+          }
+        }
+      }
+    },
     "Column header" : {
 
     },
@@ -71,6 +93,20 @@
     },
     "Directory" : {
 
+    },
+    "Duplicate" : {
+
+    },
+    "DuplicatedConfigName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (Copy)"
+          }
+        }
+      }
     },
     "Edit" : {
       "extractionState" : "manual",
@@ -116,6 +152,12 @@
     "It has not been started yet" : {
       "comment" : "Error when terminate an execution that has not been started yet"
     },
+    "Key" : {
+      "extractionState" : "manual"
+    },
+    "Key 1" : {
+      "extractionState" : "manual"
+    },
     "Move Left" : {
 
     },
@@ -140,6 +182,12 @@
 
     },
     "New Workspace..." : {
+
+    },
+    "No" : {
+
+    },
+    "OK" : {
 
     },
     "Open Workspace..." : {
@@ -190,6 +238,9 @@
 
     },
     "Unique name of the command" : {
+
+    },
+    "Yes" : {
 
     }
   },
