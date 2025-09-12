@@ -28,13 +28,22 @@ struct FieldListView: View {
                     Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
                         HStack {
                             Text(fieldDisplayConfig.fieldDescription)
-                            //                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
-                                .background(selectedFields.contains(fieldDisplayConfig.id) ?  Color(nsColor: NSColor.selectedControlColor) : .clear)
-                            //                                .padding(.horizontal, 4)
-                            //                                .padding(.vertical, 4)
-                            //                                .padding()
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
                         }
+                        .foregroundStyle(selectedFields.contains(fieldDisplayConfig.id) ?
+                                         Color(nsColor: NSColor.selectedControlTextColor) :
+                                            Color(nsColor: NSColor.controlTextColor))
+                        .background(selectedFields.contains(fieldDisplayConfig.id) ?
+                                    Color(nsColor: NSColor.selectedControlColor) :
+                                        Color(nsColor: NSColor.controlColor))
+                        .cornerRadius(4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
+                        )
                     }
+                    .buttonStyle(PlainButtonStyle())
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
                             FieldListHelper.openFieldConfigWindow(fieldConfig: fieldDisplayConfig)
