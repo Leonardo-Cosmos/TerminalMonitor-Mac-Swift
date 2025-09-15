@@ -11,18 +11,18 @@ struct FieldListView: View {
     
     @State var visibleFields: [FieldDisplayConfig] = []
     
-    @State private var isFieldsListExpanded = true
+    @State private var isExpanded = true
     
-    @State private var selectedFields: Set<UUID> = []
+    @State private var selectedItems: Set<UUID> = []
     
-    @State private var selectedField: UUID?
+    @State private var selectedItem: UUID?
     
-    @State private var selectMultiFields = false
+    @State private var selectMultiItems = false
     
     var onFieldsApplied: ([FieldDisplayConfig]) -> Void
     
     var body: some View {
-        DisclosureGroup(isExpanded: $isFieldsListExpanded, content: {
+        DisclosureGroup(isExpanded: $isExpanded, content: {
             HStack {
                 ForEach(visibleFields) { fieldDisplayConfig in
                     Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
@@ -31,10 +31,10 @@ struct FieldListView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                         }
-                        .foregroundStyle(selectedFields.contains(fieldDisplayConfig.id) ?
+                        .foregroundStyle(selectedItems.contains(fieldDisplayConfig.id) ?
                                          Color(nsColor: NSColor.selectedControlTextColor) :
                                             Color(nsColor: NSColor.controlTextColor))
-                        .background(selectedFields.contains(fieldDisplayConfig.id) ?
+                        .background(selectedItems.contains(fieldDisplayConfig.id) ?
                                     Color(nsColor: NSColor.selectedControlColor) :
                                         Color(nsColor: NSColor.controlColor))
                         .cornerRadius(4)
@@ -66,39 +66,39 @@ struct FieldListView: View {
                     removeSelectedField()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Edit", systemImage: "pencil") {
                     editSelectedField()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Move Left", systemImage: "arrowshape.left.fill") {
                     moveSelectedFieldsLeft()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Move Right", systemImage: "arrowshape.right.fill") {
                     moveSelectedFieldsRight()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Spacer()
                 
-                Button("Select", systemImage: selectMultiFields ? "checklist.checked" : "checklist") {
-                    if selectMultiFields {
-                        selectedFields.removeAll()
-                        if let selectedField = selectedField {
-                            selectedFields.insert(selectedField)
+                Button("Select", systemImage: selectMultiItems ? "checklist.checked" : "checklist") {
+                    if selectMultiItems {
+                        selectedItems.removeAll()
+                        if let selectedField = selectedItem {
+                            selectedItems.insert(selectedField)
                         }
                     }
-                    selectMultiFields.toggle()
+                    selectMultiItems.toggle()
                 }
                 .labelStyle(.iconOnly)
-                .help(selectMultiFields ? "Multiple Selection" : "Single Selection")
+                .help(selectMultiItems ? "Multiple Selection" : "Single Selection")
                 
                 Button("Apply", systemImage: "checkmark") {
                     onFieldsApplied(visibleFields)
@@ -110,24 +110,24 @@ struct FieldListView: View {
     }
     
     private func onFieldClicked(fieldId: UUID) {
-        if selectMultiFields {
-            if selectedFields.contains(fieldId) {
-                selectedFields.remove(fieldId)
-                if selectedField == fieldId {
-                    selectedField = nil
+        if selectMultiItems {
+            if selectedItems.contains(fieldId) {
+                selectedItems.remove(fieldId)
+                if selectedItem == fieldId {
+                    selectedItem = nil
                 }
             } else {
-                selectedFields.insert(fieldId)
-                selectedField = fieldId
+                selectedItems.insert(fieldId)
+                selectedItem = fieldId
             }
         } else {
-            if selectedField == fieldId {
-                selectedField = nil
-                selectedFields.removeAll()
+            if selectedItem == fieldId {
+                selectedItem = nil
+                selectedItems.removeAll()
             } else {
-                selectedField = fieldId
-                selectedFields.removeAll()
-                selectedFields.insert(fieldId)
+                selectedItem = fieldId
+                selectedItems.removeAll()
+                selectedItems.insert(fieldId)
             }
         }
     }
@@ -139,26 +139,26 @@ struct FieldListView: View {
     }
     
     private func removeSelectedField() {
-        if let fieldId = selectedField {
+        if let fieldId = selectedItem {
             FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
         }
     }
     
     private func editSelectedField() {
-        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedField }) {
+        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedItem }) {
             FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
         }
     }
     
     private func moveSelectedFieldsLeft() {
-        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
+        let selectedFields = visibleFields.filter { self.selectedItems.contains($0.id)}
         for selectedField in selectedFields {
             FieldListHelper.moveFieldConfigLeft(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
     
     private func moveSelectedFieldsRight() {
-        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
+        let selectedFields = visibleFields.filter { self.selectedItems.contains($0.id)}
         for selectedField in selectedFields {
             FieldListHelper.moveFieldConfigRight(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
