@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Flow
 
 struct FieldListView: View {
     
@@ -23,11 +24,12 @@ struct FieldListView: View {
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded, content: {
-            HStack {
+            HFlow {
                 ForEach(visibleFields) { fieldDisplayConfig in
                     Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
                         HStack {
                             Text(fieldDisplayConfig.fieldDescription)
+                                .lineLimit(1)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                         }
@@ -52,7 +54,6 @@ struct FieldListView: View {
                     }
                 }
             }
-            .padding(2)
         }, label: {
             HStack {
                 Text("Fields")
@@ -107,6 +108,7 @@ struct FieldListView: View {
                 .help("Apply Field Changes")
             }
         })
+        .frame(minWidth: 400)
     }
     
     private func onFieldClicked(fieldId: UUID) {
@@ -132,6 +134,32 @@ struct FieldListView: View {
         }
     }
     
+    private func forEachSelectedField(byOrder: Bool = false, reverseOrder: Bool = false,
+                                      action: (FieldDisplayConfig) -> Void) {
+        var selectedFields: [FieldDisplayConfig] = []
+        for fieldId in selectedItems {
+            if let selectedField = visibleFields.first(where: { $0.id == fieldId }) {
+                selectedFields.append(selectedField)
+            }
+        }
+        
+        if byOrder {
+            selectedFields.sort(by: { fieldX, fieldY in
+                let indexX = visibleFields.firstIndex(where: { $0.id == fieldX.id }) ?? 0
+                let indexY = visibleFields.firstIndex(where: { $0.id == fieldY.id }) ?? 0
+                return indexX < indexY
+            })
+        }
+        
+        if reverseOrder {
+            selectedFields.reverse()
+        }
+        
+        for selectedField in selectedFields {
+            action(selectedField)
+        }
+    }
+    
     private func addField() {
         FieldListHelper.openFieldConfigWindow { fieldConfig in
             FieldListHelper.addFieldConfig(fieldConfig: fieldConfig, fieldConfigs: &visibleFields, replacing: nil)
@@ -139,27 +167,25 @@ struct FieldListView: View {
     }
     
     private func removeSelectedField() {
-        if let fieldId = selectedItem {
-            FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
+        forEachSelectedField { selectedField in
+            FieldListHelper.removeFieldConfig(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
     
     private func editSelectedField() {
-        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedItem }) {
-            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
+        forEachSelectedField { selectedField in
+            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedField)
         }
     }
     
     private func moveSelectedFieldsLeft() {
-        let selectedFields = visibleFields.filter { self.selectedItems.contains($0.id)}
-        for selectedField in selectedFields {
+        forEachSelectedField(byOrder: true, reverseOrder: false) { selectedField in
             FieldListHelper.moveFieldConfigLeft(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
     
     private func moveSelectedFieldsRight() {
-        let selectedFields = visibleFields.filter { self.selectedItems.contains($0.id)}
-        for selectedField in selectedFields {
+        forEachSelectedField(byOrder: true, reverseOrder: true) { selectedField in
             FieldListHelper.moveFieldConfigRight(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
