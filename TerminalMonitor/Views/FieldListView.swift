@@ -10,6 +10,14 @@ import Flow
 
 struct FieldListView: View {
     
+    private static let selectedButtonForeground = Color(nsColor: NSColor.selectedControlTextColor)
+    
+    private static let unselectedButtonForeground = Color(nsColor: NSColor.controlTextColor)
+    
+    private static let selectedButtonBackground = Color(nsColor: NSColor.selectedControlColor)
+    
+    private static let unselectedButtonBackground = Color(nsColor: NSColor.controlColor)
+    
     @State var visibleFields: [FieldDisplayConfig] = []
     
     @State private var isExpanded = true
@@ -33,12 +41,10 @@ struct FieldListView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                         }
-                        .foregroundStyle(selectedItems.contains(fieldDisplayConfig.id) ?
-                                         Color(nsColor: NSColor.selectedControlTextColor) :
-                                            Color(nsColor: NSColor.controlTextColor))
-                        .background(selectedItems.contains(fieldDisplayConfig.id) ?
-                                    Color(nsColor: NSColor.selectedControlColor) :
-                                        Color(nsColor: NSColor.controlColor))
+                        .foregroundStyle(buttonForeground(fieldDisplayConfig.id))
+                        .background(buttonBackground(fieldDisplayConfig.id))
+                        .backgroundStyle(buttonBackground(fieldDisplayConfig.id))
+                        .opacity(fieldDisplayConfig.hidden ? 0.5 : 1.0)
                         .cornerRadius(4)
                         .overlay(
                             RoundedRectangle(cornerRadius: 4)
@@ -131,6 +137,22 @@ struct FieldListView: View {
                 selectedItems.removeAll()
                 selectedItems.insert(fieldId)
             }
+        }
+    }
+    
+    private func buttonForeground(_ fieldId: UUID) -> Color {
+        if selectedItems.contains(fieldId) {
+            return Self.selectedButtonForeground
+        } else {
+            return Self.unselectedButtonForeground
+        }
+    }
+    
+    private func buttonBackground(_ fieldId: UUID) -> Color {
+        if selectedItems.contains(fieldId) {
+            return Self.selectedButtonBackground
+        } else {
+            return Self.unselectedButtonBackground
         }
     }
     
