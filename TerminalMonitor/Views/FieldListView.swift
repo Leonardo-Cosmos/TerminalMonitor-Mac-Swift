@@ -6,35 +6,52 @@
 //
 
 import SwiftUI
+import Flow
 
 struct FieldListView: View {
     
+    private static let selectedButtonForeground = Color(nsColor: NSColor.selectedControlTextColor)
+    
+    private static let unselectedButtonForeground = Color(nsColor: NSColor.controlTextColor)
+    
+    private static let selectedButtonBackground = Color(nsColor: NSColor.selectedControlColor)
+    
+    private static let unselectedButtonBackground = Color(nsColor: NSColor.controlColor)
+    
     @State var visibleFields: [FieldDisplayConfig] = []
     
-    @State private var isFieldsListExpanded = true
+    @State private var isExpanded = true
     
-    @State private var selectedFields: Set<UUID> = []
+    @State private var selectedItems: Set<UUID> = []
     
-    @State private var selectedField: UUID?
+    @State private var selectedItem: UUID?
     
-    @State private var selectMultiFields = false
+    @State private var selectMultiItems = false
     
     var onFieldsApplied: ([FieldDisplayConfig]) -> Void
     
     var body: some View {
-        DisclosureGroup(isExpanded: $isFieldsListExpanded, content: {
-            HStack {
+        DisclosureGroup(isExpanded: $isExpanded, content: {
+            HFlow {
                 ForEach(visibleFields) { fieldDisplayConfig in
                     Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
                         HStack {
                             Text(fieldDisplayConfig.fieldDescription)
-                            //                                .foregroundStyle(Color(nsColor: NSColor.alternateSelectedControlTextColor))
-                                .background(selectedFields.contains(fieldDisplayConfig.id) ?  Color(nsColor: NSColor.selectedControlColor) : .clear)
-                            //                                .padding(.horizontal, 4)
-                            //                                .padding(.vertical, 4)
-                            //                                .padding()
+                                .lineLimit(1)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
                         }
+                        .foregroundStyle(buttonForeground(fieldDisplayConfig.id))
+                        .background(buttonBackground(fieldDisplayConfig.id))
+                        .backgroundStyle(buttonBackground(fieldDisplayConfig.id))
+                        .opacity(fieldDisplayConfig.hidden ? 0.5 : 1.0)
+                        .cornerRadius(4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
+                        )
                     }
+                    .buttonStyle(PlainButtonStyle())
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
                             FieldListHelper.openFieldConfigWindow(fieldConfig: fieldDisplayConfig)
@@ -43,7 +60,6 @@ struct FieldListView: View {
                     }
                 }
             }
-            .padding(2)
         }, label: {
             HStack {
                 Text("Fields")
@@ -57,39 +73,39 @@ struct FieldListView: View {
                     removeSelectedField()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Edit", systemImage: "pencil") {
                     editSelectedField()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Move Left", systemImage: "arrowshape.left.fill") {
                     moveSelectedFieldsLeft()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Button("Move Right", systemImage: "arrowshape.right.fill") {
                     moveSelectedFieldsRight()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedFields.isEmpty)
+                .disabled(selectedItems.isEmpty)
                 
                 Spacer()
                 
-                Button("Select", systemImage: selectMultiFields ? "checklist.checked" : "checklist") {
-                    if selectMultiFields {
-                        selectedFields.removeAll()
-                        if let selectedField = selectedField {
-                            selectedFields.insert(selectedField)
+                Button("Select", systemImage: selectMultiItems ? "checklist.checked" : "checklist") {
+                    if selectMultiItems {
+                        selectedItems.removeAll()
+                        if let selectedField = selectedItem {
+                            selectedItems.insert(selectedField)
                         }
                     }
-                    selectMultiFields.toggle()
+                    selectMultiItems.toggle()
                 }
                 .labelStyle(.iconOnly)
-                .help(selectMultiFields ? "Multiple Selection" : "Single Selection")
+                .help(selectMultiItems ? "Multiple Selection" : "Single Selection")
                 
                 Button("Apply", systemImage: "checkmark") {
                     onFieldsApplied(visibleFields)
@@ -98,28 +114,71 @@ struct FieldListView: View {
                 .help("Apply Field Changes")
             }
         })
+        .frame(minWidth: 400)
     }
     
     private func onFieldClicked(fieldId: UUID) {
-        if selectMultiFields {
-            if selectedFields.contains(fieldId) {
-                selectedFields.remove(fieldId)
-                if selectedField == fieldId {
-                    selectedField = nil
+        if selectMultiItems {
+            if selectedItems.contains(fieldId) {
+                selectedItems.remove(fieldId)
+                if selectedItem == fieldId {
+                    selectedItem = nil
                 }
             } else {
-                selectedFields.insert(fieldId)
-                selectedField = fieldId
+                selectedItems.insert(fieldId)
+                selectedItem = fieldId
             }
         } else {
-            if selectedField == fieldId {
-                selectedField = nil
-                selectedFields.removeAll()
+            if selectedItem == fieldId {
+                selectedItem = nil
+                selectedItems.removeAll()
             } else {
-                selectedField = fieldId
-                selectedFields.removeAll()
-                selectedFields.insert(fieldId)
+                selectedItem = fieldId
+                selectedItems.removeAll()
+                selectedItems.insert(fieldId)
             }
+        }
+    }
+    
+    private func buttonForeground(_ fieldId: UUID) -> Color {
+        if selectedItems.contains(fieldId) {
+            return Self.selectedButtonForeground
+        } else {
+            return Self.unselectedButtonForeground
+        }
+    }
+    
+    private func buttonBackground(_ fieldId: UUID) -> Color {
+        if selectedItems.contains(fieldId) {
+            return Self.selectedButtonBackground
+        } else {
+            return Self.unselectedButtonBackground
+        }
+    }
+    
+    private func forEachSelectedField(byOrder: Bool = false, reverseOrder: Bool = false,
+                                      action: (FieldDisplayConfig) -> Void) {
+        var selectedFields: [FieldDisplayConfig] = []
+        for fieldId in selectedItems {
+            if let selectedField = visibleFields.first(where: { $0.id == fieldId }) {
+                selectedFields.append(selectedField)
+            }
+        }
+        
+        if byOrder {
+            selectedFields.sort(by: { fieldX, fieldY in
+                let indexX = visibleFields.firstIndex(where: { $0.id == fieldX.id }) ?? 0
+                let indexY = visibleFields.firstIndex(where: { $0.id == fieldY.id }) ?? 0
+                return indexX < indexY
+            })
+        }
+        
+        if reverseOrder {
+            selectedFields.reverse()
+        }
+        
+        for selectedField in selectedFields {
+            action(selectedField)
         }
     }
     
@@ -130,29 +189,78 @@ struct FieldListView: View {
     }
     
     private func removeSelectedField() {
-        if let fieldId = selectedField {
-            FieldListHelper.removeFieldConfig(fieldId: fieldId, fieldConfigs: &visibleFields)
+        forEachSelectedField { selectedField in
+            FieldListHelper.removeFieldConfig(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
     
     private func editSelectedField() {
-        if let selectedFieldConfig = visibleFields.first(where: { $0.id == selectedField }) {
-            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedFieldConfig)
+        forEachSelectedField { selectedField in
+            FieldListHelper.openFieldConfigWindow(fieldConfig: selectedField)
         }
     }
     
     private func moveSelectedFieldsLeft() {
-        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
-        for selectedField in selectedFields {
+        forEachSelectedField(byOrder: true, reverseOrder: false) { selectedField in
             FieldListHelper.moveFieldConfigLeft(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
     }
     
     private func moveSelectedFieldsRight() {
-        let selectedFields = visibleFields.filter { self.selectedFields.contains($0.id)}
-        for selectedField in selectedFields {
+        forEachSelectedField(byOrder: true, reverseOrder: true) { selectedField in
             FieldListHelper.moveFieldConfigRight(fieldId: selectedField.id, fieldConfigs: &visibleFields)
         }
+    }
+}
+
+struct FieldListHelper {
+    
+    static func openFieldConfigWindow(fieldConfig: FieldDisplayConfig? = nil, onSave: ((FieldDisplayConfig) -> Void)? = nil) {
+        
+        var fieldConfig = fieldConfig ?? FieldDisplayConfig(fieldKey: "", style: TextStyleConfig())
+        
+        FieldDisplayDetailWindowController.openWindow(for: Binding(
+            get: { fieldConfig },
+            set: { fieldConfig = $0 }
+        ), onSave: onSave)
+    }
+    
+    static func addFieldConfig(fieldConfig: FieldDisplayConfig, fieldConfigs: inout [FieldDisplayConfig], replacing fieldId: UUID?) {
+        
+        if let fieldId = fieldId, let index = fieldConfigs.firstIndex(where: { $0.id == fieldId }) {
+            fieldConfigs.insert(fieldConfig, at: index)
+        } else {
+            fieldConfigs.append(fieldConfig)
+        }
+    }
+    
+    static func removeFieldConfig(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        
+        fieldConfigs.removeAll() { field in field.id == fieldId }
+    }
+    
+    static func moveFieldConfigLeft(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex - 1 + fieldConfigs.count) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
+    }
+    
+    static func moveFieldConfigRight(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex + 1) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
     }
 }
 
