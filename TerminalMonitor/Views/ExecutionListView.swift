@@ -93,6 +93,8 @@ struct ExecutionListViewItem: View {
     
     @State var execution: ExecutionInfo
     
+    @State var terminated = false
+    
     @Binding var changeSet: Set<UUID>
     
     var body: some View {
@@ -103,13 +105,17 @@ struct ExecutionListViewItem: View {
             Spacer()
             
             SymbolButton(systemImage: "arrow.circlepath", symbolColor: .blue) {
+                terminated = true
                 ExecutionListViewHelper.restartExecution(executionId: execution.id)
             }
+            .disabled(terminated)
             .help("Restart")
             
             SymbolButton(systemImage: "stop.fill", symbolColor: .red) {
+                terminated = true
                 ExecutionListViewHelper.stopExecution(executionId: execution.id)
             }
+            .disabled(terminated)
             .help("Stop")
         }
         .offset(y: changeSet.contains(execution.id) ? -10 : 0)

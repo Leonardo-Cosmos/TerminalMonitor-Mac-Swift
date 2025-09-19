@@ -24,6 +24,8 @@ class Execution {
     
     private let startSemaphore = DispatchSemaphore(value: 1)
     
+    private let terminationWaiter = SignalWaiter()
+    
     private(set) var completed = false
     
     private var process: Process?
@@ -57,6 +59,9 @@ class Execution {
                 try self.run(executableFilePath: self.commandConfig.executableFile,
                              arguments: self.commandConfig.arguments,
                              currentDirPath: self.commandConfig.currentDirectory)
+                
+                Self.logger.debug("Execution (id: \(self.id)) is started")
+                
             } catch {
                 onCompleted(error: error)
             }
@@ -77,6 +82,8 @@ class Execution {
         
         return Task {
             process?.terminate()
+            await terminationWaiter.waitForSignal()
+            Self.logger.info("Execution (id: \(self.id)) is terminated")
         }
     }
     
@@ -131,7 +138,6 @@ class Execution {
         }
         
         try process.run()
-        Self.logger.debug("Execution (id: \(self.id)) is started")
     }
     
     private func publishProcessOutput(data: Data) {
@@ -157,6 +163,7 @@ class Execution {
             textPublisher.send(completion: .finished)
         }
         
+        terminationWaiter.sendSignal()
         completed = true
     }
 }

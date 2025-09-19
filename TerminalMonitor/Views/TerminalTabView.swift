@@ -147,16 +147,20 @@ struct TerminalTabView: View {
             selectedTerminal = workspaceConfig.terminals.first?.id
             
             terminalLineProducer.startedHandler = {
-                timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-                    Task {
-                        let terminalLines = await terminalLineProducer.readTerminalLines()
-                        await terminalLineContainer.appendTerminalLines(terminalLines: terminalLines)
+                Task { @MainActor in
+                    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                        Task {
+                            let terminalLines = await terminalLineProducer.readTerminalLines()
+                            await terminalLineContainer.appendTerminalLines(terminalLines: terminalLines)
+                        }
                     }
                 }
             }
             terminalLineProducer.completedHandler = {
-                timer?.invalidate()
-                timer = nil
+                Task { @MainActor in
+                    timer?.invalidate()
+                    timer = nil
+                }
             }
             
             terminalLineContainer.terminalLinesAppendedHandler = { terminalLines in
