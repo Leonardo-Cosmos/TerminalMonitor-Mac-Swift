@@ -213,6 +213,57 @@ struct FieldListView: View {
     }
 }
 
+struct FieldListHelper {
+    
+    static func openFieldConfigWindow(fieldConfig: FieldDisplayConfig? = nil, onSave: ((FieldDisplayConfig) -> Void)? = nil) {
+        
+        var fieldConfig = fieldConfig ?? FieldDisplayConfig(fieldKey: "", style: TextStyleConfig())
+        
+        FieldDisplayDetailWindowController.openWindow(for: Binding(
+            get: { fieldConfig },
+            set: { fieldConfig = $0 }
+        ), onSave: onSave)
+    }
+    
+    static func addFieldConfig(fieldConfig: FieldDisplayConfig, fieldConfigs: inout [FieldDisplayConfig], replacing fieldId: UUID?) {
+        
+        if let fieldId = fieldId, let index = fieldConfigs.firstIndex(where: { $0.id == fieldId }) {
+            fieldConfigs.insert(fieldConfig, at: index)
+        } else {
+            fieldConfigs.append(fieldConfig)
+        }
+    }
+    
+    static func removeFieldConfig(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        
+        fieldConfigs.removeAll() { field in field.id == fieldId }
+    }
+    
+    static func moveFieldConfigLeft(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex - 1 + fieldConfigs.count) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
+    }
+    
+    static func moveFieldConfigRight(fieldId: UUID, fieldConfigs: inout [FieldDisplayConfig]) {
+        guard let srcIndex = fieldConfigs.firstIndex(where: { $0.id == fieldId }) else {
+            return
+        }
+        
+        let dstIndex = (srcIndex + 1) % fieldConfigs.count
+        
+        let fieldConfig = fieldConfigs[srcIndex]
+        fieldConfigs.remove(at: srcIndex)
+        fieldConfigs.insert(fieldConfig, at: dstIndex)
+    }
+}
+
 #Preview {
     FieldListView(visibleFields: previewFieldDisplayConfigs(), onFieldsApplied: { visibleFields in })
 }
