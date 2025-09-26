@@ -33,32 +33,55 @@ struct TerminalView: View {
     
     @State private var selectedLine: UUID?
     
+    @State private var autoScroll: Bool = false
+    
+    @State private var lastLineId: UUID? = nil
+    
+    @State private var scrollTimer: Timer?
+    
     var body: some View {
         VStack {
             FieldListView(visibleFields: terminalConfig.visibleFields, onFieldsApplied: { visibleFields in
                 applyVisibleFields(visibleFields: visibleFields)
             })
             
-            Table(lineViewModels, selection: $selectedLine) {
-                TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
-                    if !fieldDisplayConfig.hidden {
-                        TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
-                            let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
-                            Text(fieldViewModel?.text ?? "")
-                                .lineLimit(nil)
-                                .onCondition(fieldViewModel?.background != nil) { view in
-                                    view.background(fieldViewModel?.background!)
-                                }
+            ScrollViewReader { proxy in
+                Table(lineViewModels, selection: $selectedLine) {
+                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
+                        if !fieldDisplayConfig.hidden {
+                            TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
+                                let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
+                                Text(fieldViewModel?.text ?? "")
+                                    .lineLimit(nil)
+                                    .onCondition(fieldViewModel?.background != nil) { view in
+                                        view.background(fieldViewModel?.background!)
+                                    }
+                            }
                         }
                     }
+                }
+                .onChange(of: lastLineId) {
+                    guard let lastLineId = lineViewModels.last?.id else {
+                        return
+                    }
+                    proxy.scrollTo(lastLineId, anchor: .bottom)
                 }
             }
         }
         .contextMenu {
-            Button("Clear All until This") {
+            SymbolLabelButton(titleKey: "Clear All until This", systemImage: "trash", symbolColor: Color(nsColor: .black)) {
                 clearTerminal()
             }
-            .labelStyle(.titleOnly)
+            
+            if autoScroll {
+                SymbolLabelButton(titleKey: "Auto Scroll", systemImage: "checkmark", symbolColor: Color(nsColor: .black)) {
+                    autoScroll = false
+                }
+            } else {
+                SymbolLabelButton(titleKey: "Auto Scroll", systemImage: "square", symbolColor: Color(nsColor: .clear)) {
+                    autoScroll = true
+                }
+            }
         }
         .onAppear {
             appendMatchedTerminalLines()
@@ -94,6 +117,16 @@ struct TerminalView: View {
         
         for terminalLine in terminalLines {
             appendTerminalLine(terminalLine: terminalLine)
+        }
+        
+        if autoScroll && !terminalLines.isEmpty {
+            if let lastLineId = terminalLines.last?.id {
+                Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { timer in
+                    Task { @MainActor in
+                        self.lastLineId = lastLineId
+                    }
+                }
+            }
         }
     }
     
