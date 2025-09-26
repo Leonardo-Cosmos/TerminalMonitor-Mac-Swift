@@ -141,9 +141,19 @@ class Execution {
     }
     
     private func publishProcessOutput(data: Data) {
-        if let outputString = String(data: data, encoding: .utf8) {
+        guard !data.isEmpty else {
+            return
+        }
+        
+        if var outputString = String(data: data, encoding: .utf8) {
+            // Normally, the process output is received with the line feed character at end.
+            if outputString.last == "\n" {
+                outputString.removeLast()
+            }
+            
+            // The output might contains multiple lines with line feed characters.
             if outputString.contains("\n") {
-                let lines = outputString.split(separator: "\n")
+                let lines = outputString.split(separator: "\n", omittingEmptySubsequences: false)
                 for line in lines {
                     self.textPublisher.send(String(line))
                 }
