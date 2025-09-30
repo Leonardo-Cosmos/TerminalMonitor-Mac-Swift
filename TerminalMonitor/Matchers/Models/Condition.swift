@@ -49,3 +49,11 @@ class Condition: Identifiable, NSCopying {
         Condition(self)
     }
 }
+
+func previewConditions() -> [Condition] {
+    [
+        Condition(name: "timestamp"),
+        Condition(name: "execution"),
+        Condition(name: "plaintext"),
+    ]
+}
