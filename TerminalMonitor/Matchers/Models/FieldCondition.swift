@@ -9,37 +9,46 @@ import Foundation
 
 class FieldCondition: Condition {
     
-    var fieldKey: String
+    @Published var fieldKey: String
     
-    var matchOperator: TextMatchOperator
+    @Published var matchOperator: TextMatchOperator
     
-    var targetValue: String
+    @Published var targetValue: String
     
-    init(id: UUID, name: String?, fieldKey: String, matchOperator: TextMatchOperator, targetValue: String) {
+    init(id: UUID, fieldKey: String, matchOperator: TextMatchOperator, targetValue: String,
+         isInverted: Bool = false,
+         defaultResult: Bool = false,
+         isDisabled: Bool = false) {
         self.fieldKey = fieldKey
         self.matchOperator = matchOperator
         self.targetValue = targetValue
         
-        super.init(id: id, name: name)
+        super.init(
+            id: id,
+            name: nil,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
+        )
     }
     
-    convenience init(name: String?, fieldKey: String, matchOperator: TextMatchOperator, targetValue: String) {
+    convenience init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String,
+                     isInverted: Bool = false,
+                     defaultResult: Bool = false,
+                     isDisabled: Bool = false) {
         self.init(
             id: UUID(),
-            name: name,
             fieldKey: fieldKey,
             matchOperator: matchOperator,
             targetValue: targetValue,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
         )
     }
     
-    convenience init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String) {
-        self.init(
-            name: nil,
-            fieldKey: fieldKey,
-            matchOperator: matchOperator,
-            targetValue: targetValue,
-        )
+    private func updatePublishedProperties() {
+        self.conditionDescription = "\(fieldKey) \(matchOperator.description) \(targetValue) "
     }
     
     init(_ obj: FieldCondition) {
@@ -53,4 +62,12 @@ class FieldCondition: Condition {
     override func copy(with zone: NSZone? = nil) -> Any {
         FieldCondition(self)
     }
+}
+
+func previewFieldConditions() -> [FieldCondition] {
+    [
+        FieldCondition(fieldKey: "timestamp", matchOperator: .equals, targetValue: ""),
+        FieldCondition(fieldKey: "execution", matchOperator: .equals, targetValue: ""),
+        FieldCondition(fieldKey: "plaintext", matchOperator: .equals, targetValue: ""),
+    ]
 }
