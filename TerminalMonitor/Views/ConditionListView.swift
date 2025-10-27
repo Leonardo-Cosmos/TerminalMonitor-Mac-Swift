@@ -54,6 +54,12 @@ struct ConditionListView: View {
                                 .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
                         )
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .contextMenu {
+                        Button("Edit", systemImage: "pencil") {
+                            ConditionListHelper.openConditionDetailWindow(condition: condition)
+                        }
+                    }
                 }
             }
         }, label: {
@@ -191,7 +197,11 @@ struct ConditionListView: View {
     
     private func editSelectedCondition() {
         forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.openConditionDetailWindow(condition: selectedCondition)
+            ConditionListHelper.openConditionDetailWindow(condition: selectedCondition) { condition in
+                if let index = conditions.firstIndex(where: { $0.id == selectedCondition.id }) {
+                    conditions[index] = condition
+                }
+            }
         }
     }
     

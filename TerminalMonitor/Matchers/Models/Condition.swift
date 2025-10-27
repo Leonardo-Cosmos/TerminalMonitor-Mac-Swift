@@ -11,13 +11,17 @@ class Condition: Identifiable, ObservableObject, NSCopying {
     
     let id: UUID
     
-    var name: String?
+    var name: String? {
+        didSet {
+            updatePublishedProperties()
+        }
+    }
     
-    var isInverted: Bool
+    @Published var isInverted: Bool
     
-    var defaultResult: Bool
+    @Published var defaultResult: Bool
     
-    var isDisabled: Bool
+    @Published var isDisabled: Bool
     
     @Published var conditionDescription: String
     
@@ -31,6 +35,8 @@ class Condition: Identifiable, ObservableObject, NSCopying {
         self.isInverted = isInverted
         self.defaultResult = defaultResult
         self.isDisabled = isDisabled
+        
+        updatePublishedProperties()
     }
     
     convenience init(name: String?) {
@@ -52,12 +58,17 @@ class Condition: Identifiable, ObservableObject, NSCopying {
         self.isInverted = obj.isInverted
         self.defaultResult = obj.defaultResult
         self.isDisabled = obj.isDisabled
+        self.conditionDescription = ""
         
-        self.conditionDescription = obj.conditionDescription
+        updatePublishedProperties()
     }
     
     func copy(with zone: NSZone? = nil) -> Any {
         Condition(self)
+    }
+    
+    private func updatePublishedProperties() {
+        self.conditionDescription = self.name ?? ""
     }
 }
 

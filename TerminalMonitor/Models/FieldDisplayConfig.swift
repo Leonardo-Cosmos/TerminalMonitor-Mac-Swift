@@ -57,16 +57,6 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
         )
     }
     
-    private func updatePublishedProperties() {
-        if let headerName = self.headerName {
-            self.fieldDescription = "\(self.fieldKey) (\(headerName))"
-            self.fieldColumnHeader = headerName
-        } else {
-            self.fieldDescription = self.fieldKey
-            self.fieldColumnHeader = self.fieldKey
-        }
-    }
-    
     func copy(with zone: NSZone? = nil) -> Any {
         FieldDisplayConfig(
             fieldKey: self.fieldKey,
@@ -75,6 +65,16 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
             customizeStyle: self.customizeStyle,
             style: self.style.copy() as! TextStyleConfig,
         )
+    }
+    
+    private func updatePublishedProperties() {
+        if let headerName = self.headerName {
+            self.fieldDescription = "\(self.fieldKey) (\(headerName))"
+            self.fieldColumnHeader = headerName
+        } else {
+            self.fieldDescription = self.fieldKey
+            self.fieldColumnHeader = self.fieldKey
+        }
     }
 }
 
