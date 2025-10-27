@@ -17,7 +17,21 @@ struct ConditionDetailView: View {
     
     var body: some View {
         VStack {
+            FieldConditionView(viewModel: viewModel.fieldCondition)
             
+            HStack {
+                Button("Cancel") {
+                    window?.close()
+                }
+                .keyboardShortcut(.cancelAction)
+                
+                Button("Save") {
+                    onSave?()
+                    window?.close()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding()
         }
     }
 }
@@ -95,7 +109,20 @@ class ConditionDetailWindowController {
             fatalError("Unknown condition type")
         }
         
-        let view = ConditionDetailView(window: window, viewModel: viewModel)
+        let view = ConditionDetailView(window: window, viewModel: viewModel, onSave: {
+            
+            let fieldConditionViewModel = viewModel.fieldCondition
+            let fieldCondition = FieldCondition(
+                id: conditionValue.id,
+                fieldKey: fieldConditionViewModel.fieldKey,
+                matchOperator: fieldConditionViewModel.matchOperator,
+                targetValue: fieldConditionViewModel.targetValue,
+                isInverted: fieldConditionViewModel.isInverted,
+                defaultResult: fieldConditionViewModel.defaultResult,
+                isDisabled: fieldConditionViewModel.isDisabled,
+            )
+            onSave?(fieldCondition)
+        })
         
         let hostingController = NSHostingController(rootView: view)
         window.contentViewController = hostingController

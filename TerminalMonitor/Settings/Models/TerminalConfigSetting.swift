@@ -15,10 +15,17 @@ class TerminalConfigSetting: Codable {
     
     let visibleFields: [FieldDisplayConfigSetting]?
     
-    init(id: String?, name: String, visibleFields: [FieldDisplayConfigSetting]?) {
+    let filterCondition: GroupConditionSetting?
+    
+    let findCondition: GroupConditionSetting?
+    
+    init(id: String?, name: String, visibleFields: [FieldDisplayConfigSetting]?,
+         filterCondition: GroupConditionSetting?, findCondition: GroupConditionSetting?) {
         self.id = id
         self.name = name
         self.visibleFields = visibleFields
+        self.filterCondition = filterCondition
+        self.findCondition = findCondition
     }
 }
 
@@ -34,7 +41,9 @@ class TerminalConfigSettingHelper {
             id: value.id.uuidString,
             name: value.name,
             visibleFields: value.visibleFields
-                .map { FieldDisplayConfigSettingHelper.save($0)! }
+                .map { FieldDisplayConfigSettingHelper.save($0)! },
+            filterCondition: GroupConditionSettingHelper.save(value.filterCondition),
+            findCondition: GroupConditionSettingHelper.save(value.findCondition),
         )
     }
     
@@ -48,7 +57,9 @@ class TerminalConfigSettingHelper {
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             name: setting.name,
             visibleFields: (setting.visibleFields ?? [])
-                .map { FieldDisplayConfigSettingHelper.load($0)! }
+                .map { FieldDisplayConfigSettingHelper.load($0)! },
+            filterCondition: GroupConditionSettingHelper.load(setting.filterCondition) ?? GroupCondition.default(),
+            findCondition: GroupConditionSettingHelper.load(setting.findCondition) ?? GroupCondition.default(),
         )
     }
 }

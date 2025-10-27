@@ -18,6 +18,10 @@ struct ConditionListView: View {
     
     private static let unselectedButtonBackground = Color(nsColor: NSColor.controlColor)
     
+    @State var title: String
+    
+    @State var matchMode: GroupMatchMode
+    
     @State var conditions: [Condition] = []
     
     @State private var isExpanded = true
@@ -31,10 +35,84 @@ struct ConditionListView: View {
     var onApplied: ([Condition]) -> Void
     
     var body: some View {
-        
+        DisclosureGroup(isExpanded: $isExpanded, content: {
+            HFlow {
+                ForEach(conditions) { condition in
+                    Button(action: { onConditionClicked(conditionId: condition.id)}) {
+                        HStack {
+                            Text(condition.conditionDescription)
+                                .lineLimit(1)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                        }
+                        .foregroundStyle(buttonForeground(condition.id))
+                        .background(buttonBackground(condition.id))
+                        .backgroundStyle(buttonBackground(condition.id))
+                        .cornerRadius(4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
+                        )
+                    }
+                }
+            }
+        }, label: {
+            HStack {
+                Text(title)
+                
+                Button("Add", systemImage: "plus") {
+                    addCondition()
+                }
+                .labelStyle(.iconOnly)
+                
+                Button("Remove", systemImage: "minus") {
+                    removeSelectedCondition()
+                }
+                .labelStyle(.iconOnly)
+                .disabled(selectedItems.isEmpty)
+                
+                Button("Edit", systemImage: "pencil") {
+                    editSelectedCondition()
+                }
+                .labelStyle(.iconOnly)
+                .disabled(selectedItems.isEmpty)
+                
+                Button("Move Left", systemImage: "arrowshape.left.fill") {
+                    moveSelectedConditionsLeft()
+                }
+                .labelStyle(.iconOnly)
+                .disabled(selectedItems.isEmpty)
+                
+                Button("Move Right", systemImage: "arrowshape.right.fill") {
+                    moveSelectedConditionsRight()
+                }
+                .labelStyle(.iconOnly)
+                .disabled(selectedItems.isEmpty)
+                
+                Spacer()
+                
+                Button("Select", systemImage: selectMultiItems ? "checklist.checked" : "checklist") {
+                    if selectMultiItems {
+                        selectedItems.removeAll()
+                        if let selectedField = selectedItem {
+                            selectedItems.insert(selectedField)
+                        }
+                    }
+                    selectMultiItems.toggle()
+                }
+                .labelStyle(.iconOnly)
+                .help(selectMultiItems ? "Multiple Selection" : "Single Selection")
+                
+                Button("Apply", systemImage: "checkmark") {
+                    onApplied(conditions)
+                }
+                .labelStyle(.iconOnly)
+                .help("Apply Condition Changes")
+            }
+        })
     }
     
-    private func onconditionClicked(conditionId: UUID) {
+    private func onConditionClicked(conditionId: UUID) {
         if selectMultiItems {
             if selectedItems.contains(conditionId) {
                 selectedItems.remove(conditionId)
@@ -105,13 +183,13 @@ struct ConditionListView: View {
         }
     }
     
-    private func removeSelectedcondition() {
+    private func removeSelectedCondition() {
         forEachSelectedCondition { selectedCondition in
             ConditionListHelper.removeCondition(conditionId: selectedCondition.id, conditions: &conditions)
         }
     }
     
-    private func editSelectedcondition() {
+    private func editSelectedCondition() {
         forEachSelectedCondition { selectedCondition in
             ConditionListHelper.openConditionDetailWindow(condition: selectedCondition)
         }
@@ -123,7 +201,7 @@ struct ConditionListView: View {
         }
     }
     
-    private func moveSelectedconditionsRight() {
+    private func moveSelectedConditionsRight() {
         forEachSelectedCondition(byOrder: true, reverseOrder: true) { selectedCondition in
             ConditionListHelper.moveConditionRight(conditionId: selectedCondition.id, conditions: &conditions)
         }
@@ -183,5 +261,5 @@ struct ConditionListHelper {
 
 
 #Preview {
-    ConditionListView(conditions: previewConditions(), onApplied: { conditions in })
+    ConditionListView(title: "Conditions", matchMode: .all, conditions: previewConditions(), onApplied: { conditions in })
 }

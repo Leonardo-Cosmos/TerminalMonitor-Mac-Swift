@@ -45,6 +45,10 @@ struct TerminalView: View {
                 applyVisibleFields(visibleFields: visibleFields)
             })
             
+            ConditionListView(title: "Filter", matchMode: terminalConfig.filterCondition.matchMode, conditions: terminalConfig.filterCondition.conditions, onApplied: { conditions in
+                filterTerminal(filterConditions: conditions)
+            })
+            
             ScrollViewReader { proxy in
                 Table(lineViewModels, selection: $selectedLine) {
                     TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
@@ -115,16 +119,22 @@ struct TerminalView: View {
     
     private func appendNewTerminalLines(terminalLines: [TerminalLine]) {
         
+        var lastAppendedLineId: UUID? = nil
         for terminalLine in terminalLines {
-            appendTerminalLine(terminalLine: terminalLine)
+            let matched = TerminalLineMatcher.matches(terminalLine: terminalLine, groupCondition: terminalConfig.filterCondition)
+            lineFilterDict[terminalLine.id] = matched
+            
+            if matched {
+                shownLines.append(terminalLine)
+                appendTerminalLine(terminalLine: terminalLine)
+                lastAppendedLineId = terminalLine.id
+            }
         }
         
-        if autoScroll && !terminalLines.isEmpty {
-            if let lastLineId = terminalLines.last?.id {
-                Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { timer in
-                    Task { @MainActor in
-                        self.lastLineId = lastLineId
-                    }
+        if autoScroll && lastAppendedLineId != nil {
+            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { timer in
+                Task { @MainActor in
+                    self.lastLineId = lastAppendedLineId
                 }
             }
         }
@@ -142,11 +152,33 @@ struct TerminalView: View {
         shownLines.append(contentsOf: remainingLines)
         
         lineViewModels.removeAll(where: { removedLineIdSet.contains($0.id) })
+        
+//        findInTerminal()
     }
     
-    private func filterTerminal() {
+    private func filterTerminal(filterConditions: [Condition]) {
+        
+        terminalConfig.filterCondition.conditions.removeAll()
+        terminalConfig.filterCondition.conditions.append(contentsOf: filterConditions)
+        
+        lineViewModels.removeAll()
+        
+        lineFilterDict.removeAll()
+        shownLines.removeAll()
+        
+        let matcher = TerminalLineMatcher(matchCondition: terminalConfig.filterCondition)
+        for terminalLine in terminalLineViewer.terminalLines {
+            let matched = matcher.matches(terminalLine: terminalLine)
+            lineFilterDict[terminalLine.id] = matched
+            
+            if matched {
+                shownLines.append(terminalLine)
+            }
+        }
         
         appendMatchedTerminalLines()
+        
+//        findInTerminal()
     }
     
     private func applyVisibleFields(visibleFields: [FieldDisplayConfig]) {
@@ -161,11 +193,22 @@ struct TerminalView: View {
     }
     
     private func appendMatchedTerminalLines() {
+        func matchLine(_ terminalLine: TerminalLine) -> Bool {
+            let matched = TerminalLineMatcher.matches(
+                terminalLine: terminalLine, matchCondition: terminalConfig.filterCondition)
+            
+            if matched {
+                shownLines.append(terminalLine)
+            }
+            return matched
+        }
         
         let terminalLines = terminalLineViewer.terminalLines
         for terminalLine in terminalLines {
-            shownLines.append(terminalLine)
-            appendTerminalLine(terminalLine: terminalLine)
+            let matched = lineFilterDict[terminalLine.id] ?? matchLine(terminalLine)
+            if matched {
+                appendTerminalLine(terminalLine: terminalLine)
+            }
         }
     }
     

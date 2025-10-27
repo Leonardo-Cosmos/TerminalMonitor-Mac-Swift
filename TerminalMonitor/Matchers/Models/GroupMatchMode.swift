@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum GroupMatchMode {
+enum GroupMatchMode: Codable {
     case all
     case any
 }

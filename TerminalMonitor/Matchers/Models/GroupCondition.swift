@@ -13,27 +13,34 @@ class GroupCondition: Condition {
     
     var conditions: [Condition]
     
-    init(id: UUID, name: String?, matchMode: GroupMatchMode, conditions: [Condition]) {
+    init(id: UUID, name: String?, matchMode: GroupMatchMode, conditions: [Condition],
+         isInverted: Bool = false,
+         defaultResult: Bool = false,
+         isDisabled: Bool = false) {
         self.matchMode = matchMode
         self.conditions = conditions
         
-        super.init(id: id, name: name)
+        super.init(
+            id: id,
+            name: name,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
+        )
     }
     
-    convenience init(name: String?, matchMode: GroupMatchMode, conditions: [Condition]) {
+    convenience init(name: String?, matchMode: GroupMatchMode, conditions: [Condition],
+                     isInverted: Bool = false,
+                     defaultResult: Bool = false,
+                     isDisabled: Bool = false) {
         self.init(
             id: UUID(),
             name: name,
             matchMode: matchMode,
             conditions: conditions,
-        )
-    }
-    
-    convenience init(matchMode: GroupMatchMode, conditions: [Condition]) {
-        self.init(
-            name: nil,
-            matchMode: matchMode,
-            conditions: conditions,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
         )
     }
     
@@ -47,4 +54,16 @@ class GroupCondition: Condition {
     override func copy(with zone: NSZone? = nil) -> Any {
         GroupCondition(self)
     }
+    
+    static func `default`() -> GroupCondition {
+        GroupCondition(name: "", matchMode: .all, conditions: [])
+    }
+}
+
+func previewGroupCondition() -> GroupCondition {
+    GroupCondition(
+        name: "preview group",
+        matchMode: .all,
+        conditions: previewFieldConditions(),
+    )
 }
