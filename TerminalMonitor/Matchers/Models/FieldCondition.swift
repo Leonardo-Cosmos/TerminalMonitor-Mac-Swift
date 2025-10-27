@@ -9,11 +9,23 @@ import Foundation
 
 class FieldCondition: Condition {
     
-    @Published var fieldKey: String
+    @Published var fieldKey: String {
+        didSet {
+            updatePublishedProperties()
+        }
+    }
     
-    @Published var matchOperator: TextMatchOperator
+    @Published var matchOperator: TextMatchOperator {
+        didSet {
+            updatePublishedProperties()
+        }
+    }
     
-    @Published var targetValue: String
+    @Published var targetValue: String {
+        didSet {
+            updatePublishedProperties()
+        }
+    }
     
     init(id: UUID, fieldKey: String, matchOperator: TextMatchOperator, targetValue: String,
          isInverted: Bool = false,
@@ -30,6 +42,8 @@ class FieldCondition: Condition {
             defaultResult: defaultResult,
             isDisabled: isDisabled,
         )
+        
+        updatePublishedProperties()
     }
     
     convenience init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String,
@@ -47,10 +61,6 @@ class FieldCondition: Condition {
         )
     }
     
-    private func updatePublishedProperties() {
-        self.conditionDescription = "\(fieldKey) \(matchOperator.description) \(targetValue) "
-    }
-    
     init(_ obj: FieldCondition) {
         self.fieldKey = obj.fieldKey
         self.matchOperator = obj.matchOperator
@@ -62,12 +72,16 @@ class FieldCondition: Condition {
     override func copy(with zone: NSZone? = nil) -> Any {
         FieldCondition(self)
     }
+    
+    private func updatePublishedProperties() {
+        self.conditionDescription = "\(fieldKey) \(matchOperator.description) \(targetValue) "
+    }
 }
 
 func previewFieldConditions() -> [FieldCondition] {
     [
-        FieldCondition(fieldKey: "timestamp", matchOperator: .equals, targetValue: ""),
-        FieldCondition(fieldKey: "execution", matchOperator: .equals, targetValue: ""),
-        FieldCondition(fieldKey: "plaintext", matchOperator: .equals, targetValue: ""),
+        FieldCondition(fieldKey: "timestamp", matchOperator: .equals, targetValue: "00:00"),
+        FieldCondition(fieldKey: "execution", matchOperator: .equals, targetValue: "console"),
+        FieldCondition(fieldKey: "plaintext", matchOperator: .equals, targetValue: "{}"),
     ]
 }

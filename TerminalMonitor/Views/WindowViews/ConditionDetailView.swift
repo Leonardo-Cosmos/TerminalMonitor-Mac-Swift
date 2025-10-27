@@ -82,7 +82,10 @@ class ConditionDetailWindowController {
         
         var viewModel: ConditionDetailViewModel
         let conditionValue = condition.wrappedValue
+        var fieldConditionValue: FieldCondition? = nil
+        var groupConditionValue: GroupCondition? = nil
         if let fieldCondition = conditionValue as? FieldCondition {
+            fieldConditionValue = fieldCondition
             let fieldConditionViewModel = FieldConditionViewModel(
                 fieldKey: fieldCondition.fieldKey,
                 matchOperator: fieldCondition.matchOperator,
@@ -99,6 +102,7 @@ class ConditionDetailWindowController {
             )
             
         } else if let groupCondition = conditionValue as? GroupCondition {
+            groupConditionValue = groupCondition
             viewModel = ConditionDetailViewModel(
                 conditionMode: .multiple,
                 fieldCondition: FieldConditionViewModel(),
@@ -111,17 +115,30 @@ class ConditionDetailWindowController {
         
         let view = ConditionDetailView(window: window, viewModel: viewModel, onSave: {
             
-            let fieldConditionViewModel = viewModel.fieldCondition
-            let fieldCondition = FieldCondition(
-                id: conditionValue.id,
-                fieldKey: fieldConditionViewModel.fieldKey,
-                matchOperator: fieldConditionViewModel.matchOperator,
-                targetValue: fieldConditionViewModel.targetValue,
-                isInverted: fieldConditionViewModel.isInverted,
-                defaultResult: fieldConditionViewModel.defaultResult,
-                isDisabled: fieldConditionViewModel.isDisabled,
-            )
-            onSave?(fieldCondition)
+            if viewModel.conditionMode == .single {
+                let fieldConditionViewModel = viewModel.fieldCondition
+                if let fieldConditionValue = fieldConditionValue {
+                    fieldConditionValue.fieldKey = fieldConditionViewModel.fieldKey
+                    fieldConditionValue.matchOperator = fieldConditionViewModel.matchOperator
+                    fieldConditionValue.targetValue = fieldConditionViewModel.targetValue
+                    fieldConditionValue.isInverted = fieldConditionViewModel.isInverted
+                    fieldConditionValue.defaultResult = fieldConditionViewModel.defaultResult
+                    fieldConditionValue.isDisabled = fieldConditionViewModel.isDisabled
+                    onSave?(fieldConditionValue)
+                    
+                } else {
+                    let fieldCondition = FieldCondition(
+                        id: conditionValue.id,
+                        fieldKey: fieldConditionViewModel.fieldKey,
+                        matchOperator: fieldConditionViewModel.matchOperator,
+                        targetValue: fieldConditionViewModel.targetValue,
+                        isInverted: fieldConditionViewModel.isInverted,
+                        defaultResult: fieldConditionViewModel.defaultResult,
+                        isDisabled: fieldConditionViewModel.isDisabled,
+                    )
+                    onSave?(fieldCondition)
+                }
+            }
         })
         
         let hostingController = NSHostingController(rootView: view)

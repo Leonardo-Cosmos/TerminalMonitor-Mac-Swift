@@ -9,9 +9,9 @@ import Foundation
 
 class GroupCondition: Condition {
     
-    var matchMode: GroupMatchMode
+    @Published var matchMode: GroupMatchMode
     
-    var conditions: [Condition]
+    @Published var conditions: [Condition]
     
     init(id: UUID, name: String?, matchMode: GroupMatchMode, conditions: [Condition],
          isInverted: Bool = false,
