@@ -19,6 +19,8 @@ struct TerminalView: View {
     
     @State private var terminalLineViewer: TerminalLineViewer = TerminalLineSupervisor.shared
     
+    @State private var filterCondition = GroupCondition.default()
+    
     @State private var lineViewModels: [TerminalLineViewModel] = []
     
     /**
@@ -45,8 +47,8 @@ struct TerminalView: View {
                 applyVisibleFields(visibleFields: visibleFields)
             })
             
-            ConditionListView(title: "Filter", matchMode: terminalConfig.filterCondition.matchMode, conditions: terminalConfig.filterCondition.conditions, onApplied: { conditions in
-                filterTerminal(filterConditions: conditions)
+            ConditionListView(title: "Filter", groupCondition: terminalConfig.filterCondition, onApplied: {
+                filterTerminal()
             })
             
             ScrollViewReader { proxy in
@@ -88,6 +90,7 @@ struct TerminalView: View {
             }
         }
         .onAppear {
+            filterCondition = terminalConfig.filterCondition
             appendMatchedTerminalLines()
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
@@ -121,7 +124,7 @@ struct TerminalView: View {
         
         var lastAppendedLineId: UUID? = nil
         for terminalLine in terminalLines {
-            let matched = TerminalLineMatcher.matches(terminalLine: terminalLine, groupCondition: terminalConfig.filterCondition)
+            let matched = TerminalLineMatcher.matches(terminalLine: terminalLine, groupCondition: filterCondition)
             lineFilterDict[terminalLine.id] = matched
             
             if matched {
@@ -156,17 +159,15 @@ struct TerminalView: View {
 //        findInTerminal()
     }
     
-    private func filterTerminal(filterConditions: [Condition]) {
-        
-        terminalConfig.filterCondition.conditions.removeAll()
-        terminalConfig.filterCondition.conditions.append(contentsOf: filterConditions)
+    private func filterTerminal() {
+        filterCondition = terminalConfig.filterCondition
         
         lineViewModels.removeAll()
         
         lineFilterDict.removeAll()
         shownLines.removeAll()
         
-        let matcher = TerminalLineMatcher(matchCondition: terminalConfig.filterCondition)
+        let matcher = TerminalLineMatcher(matchCondition: filterCondition)
         for terminalLine in terminalLineViewer.terminalLines {
             let matched = matcher.matches(terminalLine: terminalLine)
             lineFilterDict[terminalLine.id] = matched
@@ -195,7 +196,7 @@ struct TerminalView: View {
     private func appendMatchedTerminalLines() {
         func matchLine(_ terminalLine: TerminalLine) -> Bool {
             let matched = TerminalLineMatcher.matches(
-                terminalLine: terminalLine, matchCondition: terminalConfig.filterCondition)
+                terminalLine: terminalLine, matchCondition: filterCondition)
             
             if matched {
                 shownLines.append(terminalLine)

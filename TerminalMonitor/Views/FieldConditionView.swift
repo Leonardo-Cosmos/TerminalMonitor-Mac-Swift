@@ -36,30 +36,36 @@ struct FieldConditionView: View {
                 SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
                     viewModel.isInverted = false
                 }
+                .help("Matching is Inverted")
             } else {
                 SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
                     viewModel.isInverted = true
                 }
+                .help("Matching is not Inverted")
             }
             
             if viewModel.defaultResult {
                 SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
                     viewModel.defaultResult = false
                 }
+                .help("Default to True when the Field is not Found")
             } else {
                 SymbolButton(systemImage: "star", symbolColor: .yellow) {
                     viewModel.defaultResult = true
                 }
+                .help("Default to False when the Field is not Found")
             }
             
             if viewModel.isDisabled {
                 SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
                     viewModel.isDisabled = false
                 }
+                .help("This Condition is Disabled")
             } else {
                 SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
                     viewModel.isDisabled = true
                 }
+                .help("This Condition is Enabled")
             }
         }
     }

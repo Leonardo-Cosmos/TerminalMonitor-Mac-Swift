@@ -20,9 +20,7 @@ struct ConditionListView: View {
     
     @State var title: String
     
-    @State var matchMode: GroupMatchMode
-    
-    @State var conditions: [Condition] = []
+    @ObservedObject var groupCondition: GroupCondition
     
     @State private var isExpanded = true
     
@@ -32,12 +30,12 @@ struct ConditionListView: View {
     
     @State private var selectMultiItems = false
     
-    var onApplied: ([Condition]) -> Void
+    var onApplied: () -> Void
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded, content: {
             HFlow {
-                ForEach(conditions) { condition in
+                ForEach(groupCondition.conditions) { condition in
                     Button(action: { onConditionClicked(conditionId: condition.id)}) {
                         HStack {
                             Text(condition.conditionDescription)
@@ -97,6 +95,56 @@ struct ConditionListView: View {
                 
                 Spacer()
                 
+                if groupCondition.matchMode == .all {
+                    Button("∀") {
+                        groupCondition.matchMode = .any
+                    }
+                    .help("Match all conditions")
+                } else {
+                    Button("∃") {
+                        groupCondition.matchMode = .all
+                    }
+                    .help("Match any conditions")
+                }
+                
+                if groupCondition.isInverted {
+                    SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
+                        groupCondition.isInverted = false
+                    }
+                    .help("Matching is Inverted")
+                } else {
+                    SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
+                        groupCondition.isInverted = true
+                    }
+                    .help("Matching is not Inverted")
+                }
+                
+                if groupCondition.defaultResult {
+                    SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
+                        groupCondition.defaultResult = false
+                    }
+                    .help("Default to True when the Field is not Found")
+                } else {
+                    SymbolButton(systemImage: "star", symbolColor: .yellow) {
+                        groupCondition.defaultResult = true
+                    }
+                    .help("Default to False when the Field is not Found")
+                }
+                
+                if groupCondition.isDisabled {
+                    SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
+                        groupCondition.isDisabled = false
+                    }
+                    .help("This Condition is Disabled")
+                } else {
+                    SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
+                        groupCondition.isDisabled = true
+                    }
+                    .help("This Condition is Enabled")
+                }
+                
+                Spacer()
+                
                 Button("Select", systemImage: selectMultiItems ? "checklist.checked" : "checklist") {
                     if selectMultiItems {
                         selectedItems.removeAll()
@@ -110,7 +158,7 @@ struct ConditionListView: View {
                 .help(selectMultiItems ? "Multiple Selection" : "Single Selection")
                 
                 Button("Apply", systemImage: "checkmark") {
-                    onApplied(conditions)
+                    onApplied()
                 }
                 .labelStyle(.iconOnly)
                 .help("Apply Condition Changes")
@@ -161,15 +209,15 @@ struct ConditionListView: View {
                                       action: (Condition) -> Void) {
         var selectedConditions: [Condition] = []
         for conditionId in selectedItems {
-            if let selectedCondition = conditions.first(where: { $0.id == conditionId }) {
+            if let selectedCondition = groupCondition.conditions.first(where: { $0.id == conditionId }) {
                 selectedConditions.append(selectedCondition)
             }
         }
         
         if byOrder {
             selectedConditions.sort(by: { conditionX, conditionY in
-                let indexX = conditions.firstIndex(where: { $0.id == conditionX.id }) ?? 0
-                let indexY = conditions.firstIndex(where: { $0.id == conditionY.id }) ?? 0
+                let indexX = groupCondition.conditions.firstIndex(where: { $0.id == conditionX.id }) ?? 0
+                let indexY = groupCondition.conditions.firstIndex(where: { $0.id == conditionY.id }) ?? 0
                 return indexX < indexY
             })
         }
@@ -185,21 +233,21 @@ struct ConditionListView: View {
     
     private func addCondition() {
         ConditionListHelper.openConditionDetailWindow { condition in
-            ConditionListHelper.addCondition(condition: condition, conditions: &conditions, replacing: nil)
+            ConditionListHelper.addCondition(condition: condition, conditions: &groupCondition.conditions, replacing: nil)
         }
     }
     
     private func removeSelectedCondition() {
         forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.removeCondition(conditionId: selectedCondition.id, conditions: &conditions)
+            ConditionListHelper.removeCondition(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
         }
     }
     
     private func editSelectedCondition() {
         forEachSelectedCondition { selectedCondition in
             ConditionListHelper.openConditionDetailWindow(condition: selectedCondition) { condition in
-                if let index = conditions.firstIndex(where: { $0.id == selectedCondition.id }) {
-                    conditions[index] = condition
+                if let index = groupCondition.conditions.firstIndex(where: { $0.id == selectedCondition.id }) {
+                    groupCondition.conditions[index] = condition
                 }
             }
         }
@@ -207,13 +255,13 @@ struct ConditionListView: View {
     
     private func moveSelectedConditionsLeft() {
         forEachSelectedCondition(byOrder: true, reverseOrder: false) { selectedCondition in
-            ConditionListHelper.moveConditionLeft(conditionId: selectedCondition.id, conditions: &conditions)
+            ConditionListHelper.moveConditionLeft(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
         }
     }
     
     private func moveSelectedConditionsRight() {
         forEachSelectedCondition(byOrder: true, reverseOrder: true) { selectedCondition in
-            ConditionListHelper.moveConditionRight(conditionId: selectedCondition.id, conditions: &conditions)
+            ConditionListHelper.moveConditionRight(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
         }
     }
 }
@@ -271,5 +319,5 @@ struct ConditionListHelper {
 
 
 #Preview {
-    ConditionListView(title: "Conditions", matchMode: .all, conditions: previewConditions(), onApplied: { conditions in })
+    ConditionListView(title: "Conditions", groupCondition: previewGroupCondition(), onApplied: {})
 }

@@ -4,6 +4,12 @@
     "" : {
 
     },
+    "∀" : {
+
+    },
+    "∃" : {
+
+    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -97,6 +103,12 @@
     "Command(*)" : {
 
     },
+    "Default to False when the Field is not Found" : {
+
+    },
+    "Default to True when the Field is not Found" : {
+
+    },
     "Directory" : {
 
     },
@@ -163,6 +175,18 @@
     },
     "Key 1" : {
       "extractionState" : "manual"
+    },
+    "Match all conditions" : {
+
+    },
+    "Match any conditions" : {
+
+    },
+    "Matching is Inverted" : {
+
+    },
+    "Matching is not Inverted" : {
+
     },
     "Move Left" : {
 
@@ -241,6 +265,12 @@
 
     },
     "The working directory where to run the command" : {
+
+    },
+    "This Condition is Disabled" : {
+
+    },
+    "This Condition is Enabled" : {
 
     },
     "Unique name of the command" : {
