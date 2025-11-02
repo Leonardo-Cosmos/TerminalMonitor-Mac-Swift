@@ -15,11 +15,21 @@ struct TerminalView: View {
         category: String(describing: Self.self)
     )
     
+    private static let invalidSelectedFoundNumber = "?"
+    
+    private static let foundNumberSeparator = "/"
+    
+    private static let beforeFirstFoundNumber = "-"
+    
+    private static let afterLastFoundNumber = "+"
+    
     @ObservedObject var terminalConfig: TerminalConfig
     
     @State private var terminalLineViewer: TerminalLineViewer = TerminalLineSupervisor.shared
     
     @State private var filterCondition = GroupCondition.default()
+    
+    @State private var findCondition = GroupCondition.default()
     
     @State private var lineViewModels: [TerminalLineViewModel] = []
     
@@ -29,15 +39,26 @@ struct TerminalView: View {
     @State private var lineFilterDict: [UUID: Bool] = [:]
     
     /**
-     A list of all matched lines.
+     A list of all filtered lines.
      */
     @State private var shownLines: [TerminalLine] = []
     
-    @State private var selectedLine: UUID?
+    /**
+     A list of all found lines within filtered lines.
+     */
+    @State private var foundLines: [(terminalLine: TerminalLine, shownIndex: Int)] = []
+    
+    @State private var selectedLineId: UUID?
+    
+    @State private var foundCount: Int = 0
+    
+    @State private var selectedFoundNumber: String = invalidSelectedFoundNumber
     
     @State private var autoScroll: Bool = false
     
-    @State private var lastLineId: UUID? = nil
+    @State private var lastScrollToLineIndex: Int? = nil
+    
+    @State private var firstScrollToLineIndex: Int? = nil
     
     @State private var scrollTimer: Timer?
     
@@ -51,8 +72,44 @@ struct TerminalView: View {
                 filterTerminal()
             })
             
+            ConditionListView(title: "Find", groupCondition: terminalConfig.findCondition, onApplied: {
+                findInTerminal()
+            })
+            
+            HStack {
+                Spacer()
+                
+                Text(selectedFoundNumber)
+                Text("/")
+                Text(foundCount.description)
+                
+                SymbolButton(systemImage: "arrow.up.to.line", symbolColor: .primary) {
+                    findFirst()
+                }
+                .help("Find First")
+                .disabled(foundCount == 0)
+                
+                SymbolButton(systemImage: "arrow.up", symbolColor: .primary) {
+                    findPrevious()
+                }
+                .help("Find Previous")
+                .disabled(foundCount == 0)
+                
+                SymbolButton(systemImage: "arrow.down", symbolColor: .primary) {
+                    findNext()
+                }
+                .help("Find Next")
+                .disabled(foundCount == 0)
+                
+                SymbolButton(systemImage: "arrow.down.to.line", symbolColor: .primary) {
+                    findLast()
+                }
+                .help("Find Last")
+                .disabled(foundCount == 0)
+            }
+            
             ScrollViewReader { proxy in
-                Table(lineViewModels, selection: $selectedLine) {
+                Table(lineViewModels, selection: $selectedLineId) {
                     TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
@@ -66,11 +123,28 @@ struct TerminalView: View {
                         }
                     }
                 }
-                .onChange(of: lastLineId) {
-                    guard let lastLineId = lineViewModels.last?.id else {
+                .onChange(of: selectedLineId) {
+                    updateSelectedFoundNumber()
+                }
+                .onChange(of: lastScrollToLineIndex) {
+                    guard let shownIndex = lastScrollToLineIndex else {
                         return
                     }
-                    proxy.scrollTo(lastLineId, anchor: .bottom)
+                    
+                    lastScrollToLineIndex = nil
+                    
+                    let terminalLine = shownLines[shownIndex]
+                    proxy.scrollTo(terminalLine.id, anchor: .bottom)
+                }
+                .onChange(of: firstScrollToLineIndex) {
+                    guard let shownIndex = firstScrollToLineIndex else {
+                        return
+                    }
+                    
+                    firstScrollToLineIndex = nil
+                    
+                    let terminalLine = shownLines[shownIndex]
+                    proxy.scrollTo(terminalLine.id, anchor: .top)
                 }
             }
         }
@@ -91,6 +165,7 @@ struct TerminalView: View {
         }
         .onAppear {
             filterCondition = terminalConfig.filterCondition
+            findCondition = terminalConfig.findCondition
             appendMatchedTerminalLines()
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
@@ -113,16 +188,25 @@ struct TerminalView: View {
         }
     }
     
+    private static func selectedFoundNumberDescription(gte start: Int? = nil, lte end: Int? = nil) -> String {
+        if let start = start, let end = end {
+            if start == end {
+                return start.description
+            }
+        }
+        return "(\(start?.description ?? Self.beforeFirstFoundNumber), \(end?.description ?? Self.afterLastFoundNumber))"
+    }
+    
     private func clearTerminal() {
         
-        if let selectedLine = selectedLine {
+        if let selectedLine = selectedLineId {
             terminalLineViewer.removeTerminalLinesUtil(terminalLineId: selectedLine)
         }
     }
     
     private func appendNewTerminalLines(terminalLines: [TerminalLine]) {
         
-        var lastAppendedLineId: UUID? = nil
+        var isAnyAdded = false
         for terminalLine in terminalLines {
             let matched = TerminalLineMatcher.matches(terminalLine: terminalLine, groupCondition: filterCondition)
             lineFilterDict[terminalLine.id] = matched
@@ -130,16 +214,12 @@ struct TerminalView: View {
             if matched {
                 shownLines.append(terminalLine)
                 appendTerminalLine(terminalLine: terminalLine)
-                lastAppendedLineId = terminalLine.id
+                isAnyAdded = true
             }
         }
         
-        if autoScroll && lastAppendedLineId != nil {
-            Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { timer in
-                Task { @MainActor in
-                    self.lastLineId = lastAppendedLineId
-                }
-            }
+        if autoScroll && isAnyAdded {
+            lastScrollToLineIndex = shownLines.count - 1
         }
     }
     
@@ -156,7 +236,7 @@ struct TerminalView: View {
         
         lineViewModels.removeAll(where: { removedLineIdSet.contains($0.id) })
         
-//        findInTerminal()
+        findInTerminal()
     }
     
     private func filterTerminal() {
@@ -179,7 +259,138 @@ struct TerminalView: View {
         
         appendMatchedTerminalLines()
         
-//        findInTerminal()
+        findInTerminal()
+    }
+    
+    private func findInTerminal() {
+        findCondition = terminalConfig.findCondition
+        foundLines.removeAll()
+        
+        let matcher = TerminalLineMatcher(matchCondition: findCondition)
+        for (index, terminalLine) in shownLines.enumerated() {
+            let found = matcher.matches(terminalLine: terminalLine)
+            if found {
+                foundLines.append((terminalLine, shownIndex: index))
+            }
+        }
+        foundCount = foundLines.count
+        
+        updateSelectedFoundNumber()
+    }
+    
+    private func updateSelectedFoundNumber() {
+        
+        guard !foundLines.isEmpty else {
+            selectedFoundNumber = Self.invalidSelectedFoundNumber
+            return
+        }
+        
+        guard let selectedShownIndex = selectedShownLineIndex() else {
+            selectedFoundNumber = Self.invalidSelectedFoundNumber
+            return
+        }
+        
+        if selectedShownIndex < foundLines.first!.shownIndex {
+            selectedFoundNumber = Self.selectedFoundNumberDescription(lte: 1)
+            
+        } else if selectedShownIndex > foundLines.last!.shownIndex {
+            selectedFoundNumber = Self.selectedFoundNumberDescription(gte: foundLines.count)
+            
+        } else {
+            for (index, (_, shownIndex)) in foundLines.enumerated() {
+                if shownIndex == selectedShownIndex {
+                    selectedFoundNumber = Self.selectedFoundNumberDescription(gte: index + 1, lte: index + 1)
+                    break;
+                } else if (shownIndex > selectedShownIndex) {
+                    selectedFoundNumber = Self.selectedFoundNumberDescription(gte: index, lte: index + 1)
+                    break;
+                }
+            }
+        }
+    }
+    
+    private func selectedShownLineIndex() -> Int? {
+        shownLines.firstIndex(where: { $0.id == selectedLineId })
+    }
+    
+    private func findPrevious() {
+        
+        guard !foundLines.isEmpty else {
+            return
+        }
+        
+        guard let selectedShownIndex = selectedShownLineIndex() else {
+            findLast()
+            return
+        }
+        
+        for (terminalLine, shownIndex) in foundLines.reversed() {
+            if shownIndex < selectedShownIndex {
+                selectedLineId = terminalLine.id
+                firstScrollToLineIndex = shownIndex
+                
+                return
+            }
+        }
+        
+        findLast()
+    }
+    
+    private func findNext() {
+        
+        guard !foundLines.isEmpty else {
+            return
+        }
+        
+        guard let selectedShownIndex = selectedShownLineIndex() else {
+            findFirst()
+            return
+        }
+        
+        for (terminalLine, shownIndex) in foundLines {
+            if shownIndex > selectedShownIndex {
+                selectedLineId = terminalLine.id
+                lastScrollToLineIndex = shownIndex
+                
+                return
+            }
+        }
+        
+        findFirst()
+    }
+    
+    private func findFirst() {
+        
+        guard !foundLines.isEmpty else {
+            return
+        }
+        
+        let (terminalLine, shownIndex) = foundLines.first!
+        if let selectedShownIndex = selectedShownLineIndex() {
+            if selectedShownIndex == shownIndex {
+                return
+            }
+        }
+        
+        selectedLineId = terminalLine.id
+        firstScrollToLineIndex = shownIndex
+    }
+    
+    private func findLast() {
+        
+        guard !foundLines.isEmpty else {
+            return
+        }
+        
+        let (terminalLine, shownIndex) = foundLines.last!
+        if let selectedShownIndex = selectedShownLineIndex() {
+            if selectedShownIndex == shownIndex {
+                return
+            }
+        }
+        
+        selectedLineId = terminalLine.id
+        lastScrollToLineIndex = shownIndex
     }
     
     private func applyVisibleFields(visibleFields: [FieldDisplayConfig]) {

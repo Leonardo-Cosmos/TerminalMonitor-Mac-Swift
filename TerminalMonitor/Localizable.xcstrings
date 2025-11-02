@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "/" : {
+
+    },
     "∀" : {
 
     },
@@ -147,6 +150,18 @@
 
     },
     "Fields" : {
+
+    },
+    "Find First" : {
+
+    },
+    "Find Last" : {
+
+    },
+    "Find Next" : {
+
+    },
+    "Find Previous" : {
 
     },
     "Full path of the executable file" : {
