@@ -40,9 +40,47 @@ struct ConditionListView: View {
                         HStack {
                             Text(condition.conditionDescription)
                                 .lineLimit(1)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
+                            
+                            HStack(spacing: 4) {
+                                if condition.isInverted {
+                                    SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
+                                        condition.isInverted = false
+                                    }
+                                    .help("Matching is Inverted")
+                                } else {
+                                    SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
+                                        condition.isInverted = true
+                                    }
+                                    .help("Matching is not Inverted")
+                                }
+                                
+                                if condition.defaultResult {
+                                    SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
+                                        condition.defaultResult = false
+                                    }
+                                    .help("Default to True when the Field is not Found")
+                                } else {
+                                    SymbolButton(systemImage: "star", symbolColor: .yellow) {
+                                        condition.defaultResult = true
+                                    }
+                                    .help("Default to False when the Field is not Found")
+                                }
+                                
+                                if condition.isDisabled {
+                                    SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
+                                        condition.isDisabled = false
+                                    }
+                                    .help("This Condition is Disabled")
+                                } else {
+                                    SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
+                                        condition.isDisabled = true
+                                    }
+                                    .help("This Condition is Enabled")
+                                }
+                            }
                         }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
                         .foregroundStyle(buttonForeground(condition.id))
                         .background(buttonBackground(condition.id))
                         .backgroundStyle(buttonBackground(condition.id))
