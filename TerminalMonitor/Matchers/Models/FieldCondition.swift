@@ -67,6 +67,8 @@ class FieldCondition: Condition {
         self.targetValue = obj.targetValue
         
         super.init(obj)
+        
+        updatePublishedProperties()
     }
     
     override func copy(with zone: NSZone? = nil) -> Any {
