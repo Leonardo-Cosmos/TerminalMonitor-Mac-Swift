@@ -42,41 +42,44 @@ struct ConditionListView: View {
                                 .lineLimit(1)
                             
                             HStack(spacing: 4) {
-                                if condition.isInverted {
-                                    SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
-                                        condition.isInverted = false
-                                    }
-                                    .help("Matching is Inverted")
-                                } else {
-                                    SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
-                                        condition.isInverted = true
-                                    }
-                                    .help("Matching is not Inverted")
-                                }
+                                SymbolButtonToggle(
+                                    toggle: Binding(
+                                        get: { condition.isInverted },
+                                        set: { condition.isInverted = $0 }
+                                    ),
+                                    toggleOnSystemImage: "minus.circle.fill",
+                                    toggleOnSystemColor: .red,
+                                    toggleOnHelpTextKey: "Matching is Inverted",
+                                    toggleOffSystemImage: "largecircle.fill.circle",
+                                    toggleOffSystemColor: .green,
+                                    toggleOffHelpTextKey: "Matching is not Inverted"
+                                )
                                 
-                                if condition.defaultResult {
-                                    SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
-                                        condition.defaultResult = false
-                                    }
-                                    .help("Default to True when the Field is not Found")
-                                } else {
-                                    SymbolButton(systemImage: "star", symbolColor: .yellow) {
-                                        condition.defaultResult = true
-                                    }
-                                    .help("Default to False when the Field is not Found")
-                                }
+                                SymbolButtonToggle(
+                                    toggle: Binding(
+                                        get: { condition.defaultResult },
+                                        set: { condition.defaultResult = $0 }
+                                    ),
+                                    toggleOnSystemImage: "star.fill",
+                                    toggleOnSystemColor: .yellow,
+                                    toggleOnHelpTextKey: "Default to True when the Field is not Found",
+                                    toggleOffSystemImage: "star",
+                                    toggleOffSystemColor: .yellow,
+                                    toggleOffHelpTextKey: "Default to False when the Field is not Found"
+                                )
                                 
-                                if condition.isDisabled {
-                                    SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
-                                        condition.isDisabled = false
-                                    }
-                                    .help("This Condition is Disabled")
-                                } else {
-                                    SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
-                                        condition.isDisabled = true
-                                    }
-                                    .help("This Condition is Enabled")
-                                }
+                                SymbolButtonToggle(
+                                    toggle: Binding(
+                                        get: { condition.isDisabled },
+                                        set: { condition.isDisabled = $0 }
+                                    ),
+                                    toggleOnSystemImage: "pause.circle",
+                                    toggleOnSystemColor: .red,
+                                    toggleOnHelpTextKey: "This Condition is Disabled",
+                                    toggleOffSystemImage: "dot.circle",
+                                    toggleOffSystemColor: .green,
+                                    toggleOffHelpTextKey: "This Condition is Enabled"
+                                )
                             }
                         }
                         .padding(.horizontal, 8)
@@ -133,53 +136,55 @@ struct ConditionListView: View {
                 
                 Spacer()
                 
-                if groupCondition.matchMode == .all {
-                    Button("∀") {
-                        groupCondition.matchMode = .any
-                    }
-                    .help("Match all conditions")
-                } else {
-                    Button("∃") {
-                        groupCondition.matchMode = .all
-                    }
-                    .help("Match any conditions")
-                }
+                TextButtonToggle(
+                    toggle: Binding(
+                        get: {groupCondition.matchMode == .all },
+                        set: { groupCondition.matchMode = ($0 ? .all : .any) }
+                    ),
+                    toggleOnTextKey: "∀",
+                    toggleOnHelpTextKey: "Match all conditions",
+                    toggleOffTextKey: "∃",
+                    toggleOffHelpTextKey: "Match any conditions"
+                )
                 
-                if groupCondition.isInverted {
-                    SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
-                        groupCondition.isInverted = false
-                    }
-                    .help("Matching is Inverted")
-                } else {
-                    SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
-                        groupCondition.isInverted = true
-                    }
-                    .help("Matching is not Inverted")
-                }
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { groupCondition.isInverted },
+                        set: { groupCondition.isInverted = $0 }
+                    ),
+                    toggleOnSystemImage: "minus.circle.fill",
+                    toggleOnSystemColor: .red,
+                    toggleOnHelpTextKey: "Matching is Inverted",
+                    toggleOffSystemImage: "largecircle.fill.circle",
+                    toggleOffSystemColor: .green,
+                    toggleOffHelpTextKey: "Matching is not Inverted"
+                )
                 
-                if groupCondition.defaultResult {
-                    SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
-                        groupCondition.defaultResult = false
-                    }
-                    .help("Default to True when the Field is not Found")
-                } else {
-                    SymbolButton(systemImage: "star", symbolColor: .yellow) {
-                        groupCondition.defaultResult = true
-                    }
-                    .help("Default to False when the Field is not Found")
-                }
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { groupCondition.defaultResult },
+                        set: { groupCondition.defaultResult = $0 }
+                    ),
+                    toggleOnSystemImage: "star.fill",
+                    toggleOnSystemColor: .yellow,
+                    toggleOnHelpTextKey: "Default to True when the Field is not Found",
+                    toggleOffSystemImage: "star",
+                    toggleOffSystemColor: .yellow,
+                    toggleOffHelpTextKey: "Default to False when the Field is not Found"
+                )
                 
-                if groupCondition.isDisabled {
-                    SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
-                        groupCondition.isDisabled = false
-                    }
-                    .help("This Condition is Disabled")
-                } else {
-                    SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
-                        groupCondition.isDisabled = true
-                    }
-                    .help("This Condition is Enabled")
-                }
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { groupCondition.isDisabled },
+                        set: { groupCondition.isDisabled = $0 }
+                    ),
+                    toggleOnSystemImage: "pause.circle",
+                    toggleOnSystemColor: .red,
+                    toggleOnHelpTextKey: "This Condition is Disabled",
+                    toggleOffSystemImage: "dot.circle",
+                    toggleOffSystemColor: .green,
+                    toggleOffHelpTextKey: "This Condition is Enabled"
+                )
                 
                 Spacer()
                 
@@ -358,4 +363,5 @@ struct ConditionListHelper {
 
 #Preview {
     ConditionListView(title: "Conditions", groupCondition: previewGroupCondition(), onApplied: {})
+        .frame(height: 100)
 }

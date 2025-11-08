@@ -83,25 +83,25 @@ struct TerminalView: View {
                 Text("/")
                 Text(foundCount.description)
                 
-                SymbolButton(systemImage: "arrow.up.to.line", symbolColor: .primary) {
+                SymbolButton(systemImage: "chevron.up.2", symbolColor: .primary) {
                     findFirst()
                 }
                 .help("Find First")
                 .disabled(foundCount == 0)
                 
-                SymbolButton(systemImage: "arrow.up", symbolColor: .primary) {
+                SymbolButton(systemImage: "chevron.up", symbolColor: .primary) {
                     findPrevious()
                 }
                 .help("Find Previous")
                 .disabled(foundCount == 0)
                 
-                SymbolButton(systemImage: "arrow.down", symbolColor: .primary) {
+                SymbolButton(systemImage: "chevron.down", symbolColor: .primary) {
                     findNext()
                 }
                 .help("Find Next")
                 .disabled(foundCount == 0)
                 
-                SymbolButton(systemImage: "arrow.down.to.line", symbolColor: .primary) {
+                SymbolButton(systemImage: "chevron.down.2", symbolColor: .primary) {
                     findLast()
                 }
                 .help("Find Last")

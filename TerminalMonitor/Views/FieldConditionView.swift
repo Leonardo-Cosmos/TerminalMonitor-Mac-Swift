@@ -32,42 +32,49 @@ struct FieldConditionView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
             
-            if viewModel.isInverted {
-                SymbolButton(systemImage: "minus.circle.fill", symbolColor: .red) {
-                    viewModel.isInverted = false
-                }
-                .help("Matching is Inverted")
-            } else {
-                SymbolButton(systemImage: "largecircle.fill.circle", symbolColor: .green) {
-                    viewModel.isInverted = true
-                }
-                .help("Matching is not Inverted")
-            }
-            
-            if viewModel.defaultResult {
-                SymbolButton(systemImage: "star.fill", symbolColor: .yellow) {
-                    viewModel.defaultResult = false
-                }
-                .help("Default to True when the Field is not Found")
-            } else {
-                SymbolButton(systemImage: "star", symbolColor: .yellow) {
-                    viewModel.defaultResult = true
-                }
-                .help("Default to False when the Field is not Found")
-            }
-            
-            if viewModel.isDisabled {
-                SymbolButton(systemImage: "pause.circle", symbolColor: .red) {
-                    viewModel.isDisabled = false
-                }
-                .help("This Condition is Disabled")
-            } else {
-                SymbolButton(systemImage: "dot.circle", symbolColor: .green) {
-                    viewModel.isDisabled = true
-                }
-                .help("This Condition is Enabled")
+            HStack {
+                
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { viewModel.isInverted },
+                        set: { viewModel.isInverted = $0 }
+                    ),
+                    toggleOnSystemImage: "minus.circle.fill",
+                    toggleOnSystemColor: .red,
+                    toggleOnHelpTextKey: "Matching is Inverted",
+                    toggleOffSystemImage: "largecircle.fill.circle",
+                    toggleOffSystemColor: .green,
+                    toggleOffHelpTextKey: "Matching is not Inverted"
+                )
+                
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { viewModel.defaultResult },
+                        set: { viewModel.defaultResult = $0 }
+                    ),
+                    toggleOnSystemImage: "star.fill",
+                    toggleOnSystemColor: .yellow,
+                    toggleOnHelpTextKey: "Default to True when the Field is not Found",
+                    toggleOffSystemImage: "star",
+                    toggleOffSystemColor: .yellow,
+                    toggleOffHelpTextKey: "Default to False when the Field is not Found"
+                )
+                
+                SymbolButtonToggle(
+                    toggle: Binding(
+                        get: { viewModel.isDisabled },
+                        set: { viewModel.isDisabled = $0 }
+                    ),
+                    toggleOnSystemImage: "pause.circle",
+                    toggleOnSystemColor: .red,
+                    toggleOnHelpTextKey: "This Condition is Disabled",
+                    toggleOffSystemImage: "dot.circle",
+                    toggleOffSystemColor: .green,
+                    toggleOffHelpTextKey: "This Condition is Enabled"
+                )
             }
         }
+        .padding()
     }
 }
 
