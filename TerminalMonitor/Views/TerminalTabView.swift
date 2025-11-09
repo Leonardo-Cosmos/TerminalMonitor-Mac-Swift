@@ -200,7 +200,20 @@ struct TerminalTabView: View {
     
     private func appendTerminal() {
         
-        let terminalConfig = TerminalConfig(name: "New")
+        let terminalConfig = TerminalConfig(
+            name: "New",
+            filterCondition: GroupCondition(
+                name: "",
+                matchMode: .all,
+                conditions: [],
+                defaultResult: true,
+            ),
+            findCondition: GroupCondition(
+                name: "",
+                matchMode: .all,
+                conditions: [],
+            )
+        )
         workspaceConfig.terminals.append(terminalConfig)
     }
     

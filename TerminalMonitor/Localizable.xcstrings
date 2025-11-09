@@ -4,6 +4,15 @@
     "" : {
 
     },
+    "/" : {
+
+    },
+    "∀" : {
+
+    },
+    "∃" : {
+
+    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31,6 +40,9 @@
 
     },
     "Apply" : {
+
+    },
+    "Apply Condition Changes" : {
 
     },
     "Apply Field Changes" : {
@@ -94,6 +106,12 @@
     "Command(*)" : {
 
     },
+    "Default to False when the Field is not Found" : {
+
+    },
+    "Default to True when the Field is not Found" : {
+
+    },
     "Directory" : {
 
     },
@@ -134,6 +152,18 @@
     "Fields" : {
 
     },
+    "Find First" : {
+
+    },
+    "Find Last" : {
+
+    },
+    "Find Next" : {
+
+    },
+    "Find Previous" : {
+
+    },
     "Full path of the executable file" : {
 
     },
@@ -160,6 +190,18 @@
     },
     "Key 1" : {
       "extractionState" : "manual"
+    },
+    "Match all conditions" : {
+
+    },
+    "Match any conditions" : {
+
+    },
+    "Matching is Inverted" : {
+
+    },
+    "Matching is not Inverted" : {
+
     },
     "Move Left" : {
 
@@ -240,7 +282,16 @@
     "The working directory where to run the command" : {
 
     },
+    "This Condition is Disabled" : {
+
+    },
+    "This Condition is Enabled" : {
+
+    },
     "Unique name of the command" : {
+
+    },
+    "Value" : {
 
     },
     "Yes" : {
