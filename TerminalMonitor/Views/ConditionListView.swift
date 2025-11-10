@@ -49,10 +49,10 @@ struct ConditionListView: View {
                                     ),
                                     toggleOnSystemImage: "minus.circle.fill",
                                     toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: "Matching is Inverted",
+                                    toggleOnHelpTextKey: NSLocalizedString("Matching is Inverted", comment: ""),
                                     toggleOffSystemImage: "largecircle.fill.circle",
                                     toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: "Matching is not Inverted"
+                                    toggleOffHelpTextKey: NSLocalizedString("Matching is not Inverted", comment: "")
                                 )
                                 
                                 SymbolButtonToggle(
@@ -62,10 +62,10 @@ struct ConditionListView: View {
                                     ),
                                     toggleOnSystemImage: "star.fill",
                                     toggleOnSystemColor: .yellow,
-                                    toggleOnHelpTextKey: "Default to True when the Field is not Found",
+                                    toggleOnHelpTextKey: NSLocalizedString("Default to True when the Field is not Found", comment: ""),
                                     toggleOffSystemImage: "star",
                                     toggleOffSystemColor: .yellow,
-                                    toggleOffHelpTextKey: "Default to False when the Field is not Found"
+                                    toggleOffHelpTextKey: NSLocalizedString("Default to False when the Field is not Found", comment: "")
                                 )
                                 
                                 SymbolButtonToggle(
@@ -75,10 +75,10 @@ struct ConditionListView: View {
                                     ),
                                     toggleOnSystemImage: "pause.circle",
                                     toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: "This Condition is Disabled",
+                                    toggleOnHelpTextKey: NSLocalizedString("This Condition is Disabled", comment: ""),
                                     toggleOffSystemImage: "dot.circle",
                                     toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: "This Condition is Enabled"
+                                    toggleOffHelpTextKey: NSLocalizedString("This Condition is Enabled", comment: "")
                                 )
                             }
                         }
@@ -141,10 +141,10 @@ struct ConditionListView: View {
                         get: {groupCondition.matchMode == .all },
                         set: { groupCondition.matchMode = ($0 ? .all : .any) }
                     ),
-                    toggleOnTextKey: "∀",
-                    toggleOnHelpTextKey: "Match all conditions",
-                    toggleOffTextKey: "∃",
-                    toggleOffHelpTextKey: "Match any conditions"
+                    toggleOnTextKey: NSLocalizedString("∀", comment: ""),
+                    toggleOnHelpTextKey: NSLocalizedString("Match all conditions", comment: ""),
+                    toggleOffTextKey: NSLocalizedString("∃", comment: ""),
+                    toggleOffHelpTextKey: NSLocalizedString("Match any conditions", comment: "")
                 )
                 
                 SymbolButtonToggle(
@@ -154,10 +154,10 @@ struct ConditionListView: View {
                     ),
                     toggleOnSystemImage: "minus.circle.fill",
                     toggleOnSystemColor: .red,
-                    toggleOnHelpTextKey: "Matching is Inverted",
+                    toggleOnHelpTextKey: NSLocalizedString("Matching is Inverted", comment: ""),
                     toggleOffSystemImage: "largecircle.fill.circle",
                     toggleOffSystemColor: .green,
-                    toggleOffHelpTextKey: "Matching is not Inverted"
+                    toggleOffHelpTextKey: NSLocalizedString("Matching is not Inverted", comment: "")
                 )
                 
                 SymbolButtonToggle(
@@ -167,10 +167,10 @@ struct ConditionListView: View {
                     ),
                     toggleOnSystemImage: "star.fill",
                     toggleOnSystemColor: .yellow,
-                    toggleOnHelpTextKey: "Default to True when the Field is not Found",
+                    toggleOnHelpTextKey: NSLocalizedString("Default to True when the Field is not Found", comment: ""),
                     toggleOffSystemImage: "star",
                     toggleOffSystemColor: .yellow,
-                    toggleOffHelpTextKey: "Default to False when the Field is not Found"
+                    toggleOffHelpTextKey: NSLocalizedString("Default to False when the Field is not Found", comment: "")
                 )
                 
                 SymbolButtonToggle(
@@ -180,10 +180,10 @@ struct ConditionListView: View {
                     ),
                     toggleOnSystemImage: "pause.circle",
                     toggleOnSystemColor: .red,
-                    toggleOnHelpTextKey: "This Condition is Disabled",
+                    toggleOnHelpTextKey: NSLocalizedString("This Condition is Disabled", comment: ""),
                     toggleOffSystemImage: "dot.circle",
                     toggleOffSystemColor: .green,
-                    toggleOffHelpTextKey: "This Condition is Enabled"
+                    toggleOffHelpTextKey: NSLocalizedString("This Condition is Enabled", comment: "")
                 )
                 
                 Spacer()
