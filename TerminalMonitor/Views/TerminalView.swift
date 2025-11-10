@@ -149,6 +149,13 @@ struct TerminalView: View {
             }
         }
         .contextMenu {
+            SymbolLabelButton(titleKey: "Detail", systemImage: "square", symbolColor: Color(nsColor: .clear)) {
+                showDetailWindow()
+            }
+            .disabled(selectedLineId == nil)
+            
+            Divider()
+            
             SymbolLabelButton(titleKey: "Clear All until This", systemImage: "trash", symbolColor: Color(nsColor: .black)) {
                 clearTerminal()
             }
@@ -201,6 +208,15 @@ struct TerminalView: View {
         
         if let selectedLine = selectedLineId {
             terminalLineViewer.removeTerminalLinesUtil(terminalLineId: selectedLine)
+        }
+    }
+    
+    private func showDetailWindow() {
+        
+        if let selectedLine = selectedLineId {
+            if let lineViewModel = lineViewModels.first(where: { $0.id == selectedLine }) {
+                TerminalLineDetailWindowController.openWindow(for: lineViewModel)
+            }
         }
     }
     
