@@ -23,6 +23,7 @@ struct TerminalLineDetailView: View {
             
             TableColumn("Value") { fieldViewModel in
                 Text(fieldViewModel.text)
+                    .lineLimit(nil)
                     .textSelection(.enabled)
             }
         }
@@ -54,7 +55,7 @@ class TerminalLineDetailWindowController {
     
     static func openWindow(for terminalLine: TerminalLineViewModel) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 200)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 600)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],
