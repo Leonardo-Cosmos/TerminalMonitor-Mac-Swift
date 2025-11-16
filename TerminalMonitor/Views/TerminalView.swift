@@ -199,8 +199,14 @@ struct TerminalView: View {
         if fieldViewModel.customizeStyle {
             Text(fieldViewModel.text)
                 .lineLimit(fieldViewModel.lineLimit)
+                .onCondition(fieldViewModel.truncationMode != nil) { view in
+                    view.truncationMode(fieldViewModel.truncationMode!)
+                }
+                .onCondition(fieldViewModel.foreground != nil) { view in
+                    view.foregroundStyle(fieldViewModel.foreground!)
+                }
                 .onCondition(fieldViewModel.background != nil) { view in
-                    view.background(fieldViewModel.background)
+                    view.background(fieldViewModel.background!)
                 }
         } else {
             Text(fieldViewModel.text)
@@ -472,7 +478,8 @@ struct TerminalView: View {
                     customizeStyle: fieldDisplayConfig.customizeStyle,
                     foreground: fieldTextStyle.foreground?.color,
                     background: fieldTextStyle.background?.color,
-                    lineLimit: fieldTextStyle.lineLimit
+                    lineLimit: fieldTextStyle.lineLimit,
+                    truncationMode: fieldTextStyle.truncationMode?.mode,
                 )
             }
         }
@@ -508,4 +515,6 @@ struct TerminalFieldViewModel: Identifiable {
     let background: Color?
     
     let lineLimit: Int?
+    
+    let truncationMode: Text.TruncationMode?
 }

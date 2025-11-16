@@ -57,12 +57,28 @@ struct TextStyleView: View {
             
             GroupBox(label: Text("Layout")) {
                 HStack {
-                    Toggle("", isOn: $viewModel.enableLineLimit)
+                    HStack {
+                        Toggle("", isOn: $viewModel.enableLineLimit)
+                        
+                        Text("Line limit (1~10)")
+                        
+                        NumericTextField(value: $viewModel.lineLimit, minValue: 1, maxValue: 10)
+                            .disabled(!viewModel.enableLineLimit)
+                    }
                     
-                    Text("Line limit (1~10)")
-                    
-                    NumericTextField(value: $viewModel.lineLimit, minValue: 1, maxValue: 10)
-                        .disabled(!viewModel.enableLineLimit)
+                    HStack {
+                        Toggle("", isOn: $viewModel.enableTruncationMode)
+                        
+                        Text("Truncation")
+                        
+                        Picker("", selection: $viewModel.truncationMode) {
+                            ForEach(TextTruncationMode.allCases) { truncationMode in
+                                Text(truncationMode.description)
+                                    .tag(truncationMode)
+                            }
+                        }
+                        .disabled(!viewModel.enableTruncationMode)
+                    }
                 }
             }
         }
@@ -87,9 +103,13 @@ class TextStyleViewModel: ObservableObject {
     
     @Published var lineLimit: Int
     
+    @Published var enableTruncationMode: Bool
+    
+    @Published var truncationMode: TextTruncationMode
+    
     init(enableForeground: Bool, foregroundColor: Color, foregroundColorMode: TextColorMode,
          enableBackground: Bool, backgroundColor: Color, backgroundColorMode: TextColorMode,
-         enableLineLimit: Bool, lineLimit: Int) {
+         enableLineLimit: Bool, lineLimit: Int, enableTruncationMode: Bool, truncationMode: TextTruncationMode) {
         self.enableForeground = enableForeground
         self.foregroundColor = foregroundColor
         self.foregroundColorMode = foregroundColorMode
@@ -98,6 +118,8 @@ class TextStyleViewModel: ObservableObject {
         self.backgroundColorMode = backgroundColorMode
         self.enableLineLimit = enableLineLimit
         self.lineLimit = lineLimit
+        self.enableTruncationMode = enableTruncationMode
+        self.truncationMode = truncationMode
     }
     
     convenience init() {
@@ -109,7 +131,9 @@ class TextStyleViewModel: ObservableObject {
             backgroundColor: .clear,
             backgroundColorMode: .fixed,
             enableLineLimit: false,
-            lineLimit: 1
+            lineLimit: 1,
+            enableTruncationMode: false,
+            truncationMode: .tail
         )
     }
     
@@ -123,6 +147,8 @@ class TextStyleViewModel: ObservableObject {
             backgroundColorMode: textStyleConfig.background?.mode ?? .fixed,
             enableLineLimit: textStyleConfig.lineLimit != nil,
             lineLimit: textStyleConfig.lineLimit ?? 1,
+            enableTruncationMode: textStyleConfig.truncationMode != nil,
+            truncationMode: textStyleConfig.truncationMode ?? .tail,
         )
     }
     
@@ -159,6 +185,12 @@ class TextStyleViewModel: ObservableObject {
             textStyleConfig.lineLimit = lineLimit
         } else {
             textStyleConfig.lineLimit = nil
+        }
+        
+        if enableTruncationMode {
+            textStyleConfig.truncationMode = truncationMode
+        } else {
+            textStyleConfig.truncationMode = nil
         }
     }
 }

@@ -17,7 +17,7 @@ enum TextColorMode: CaseIterable, Identifiable, Codable {
     var description: String {
         switch self {
         case .fixed:
-            "Fixed"
+            NSLocalizedString("Fixed", comment: "")
         }
     }
 }

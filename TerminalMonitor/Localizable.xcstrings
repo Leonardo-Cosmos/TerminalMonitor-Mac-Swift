@@ -179,6 +179,9 @@
     "Find Previous" : {
 
     },
+    "Fixed" : {
+
+    },
     "Foreground" : {
 
     },
@@ -189,6 +192,9 @@
 
     },
     "General" : {
+
+    },
+    "Head" : {
 
     },
     "Header" : {
@@ -225,6 +231,9 @@
 
     },
     "Matching is not Inverted" : {
+
+    },
+    "Middle" : {
 
     },
     "Move Left" : {
@@ -303,6 +312,9 @@
     "Stop" : {
 
     },
+    "Tail" : {
+
+    },
     "Text Style" : {
 
     },
@@ -313,6 +325,9 @@
 
     },
     "This Condition is Enabled" : {
+
+    },
+    "Truncation" : {
 
     },
     "Unique name of the command" : {

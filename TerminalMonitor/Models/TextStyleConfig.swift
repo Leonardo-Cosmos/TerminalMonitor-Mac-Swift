@@ -17,19 +17,23 @@ class TextStyleConfig: Identifiable, NSCopying {
     
     var lineLimit: Int?
     
-    init(id: UUID, foreground: TextColorConfig? = nil, background: TextColorConfig? = nil, lineLimit: Int? = nil) {
+    var truncationMode: TextTruncationMode?
+    
+    init(id: UUID, foreground: TextColorConfig? = nil, background: TextColorConfig? = nil, lineLimit: Int? = nil, truncationMode: TextTruncationMode? = nil) {
         self.id = id
         self.foreground = foreground
         self.background = background
         self.lineLimit = lineLimit
+        self.truncationMode = truncationMode
     }
     
-    convenience init(foreground: TextColorConfig? = nil, background: TextColorConfig? = nil, lineLimit: Int? = nil) {
+    convenience init(foreground: TextColorConfig? = nil, background: TextColorConfig? = nil, lineLimit: Int? = nil, truncationMode: TextTruncationMode? = nil) {
         self.init(
             id: UUID(),
             foreground: foreground,
             background: background,
             lineLimit: lineLimit,
+            truncationMode: truncationMode,
         )
     }
     
@@ -38,6 +42,7 @@ class TextStyleConfig: Identifiable, NSCopying {
             foreground: self.foreground == nil ? nil : (self.foreground!.copy() as! TextColorConfig),
             background: self.background == nil ? nil : (self.background!.copy() as! TextColorConfig),
             lineLimit: self.lineLimit,
+            truncationMode: self.truncationMode,
         )
     }
     
@@ -46,6 +51,7 @@ class TextStyleConfig: Identifiable, NSCopying {
             foreground: nil,
             background: nil,
             lineLimit: nil,
+            truncationMode: nil,
         )
     }
 }

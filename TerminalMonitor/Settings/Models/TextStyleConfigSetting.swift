@@ -17,11 +17,14 @@ class TextStyleConfigSetting: Codable {
     
     let lineLimit: Int?
     
-    init(id: String?, foreground: TextColorConfigSetting?, background: TextColorConfigSetting?, lineLimit: Int?) {
+    let truncationMode: TextTruncationMode?
+    
+    init(id: String?, foreground: TextColorConfigSetting?, background: TextColorConfigSetting?, lineLimit: Int?, truncationMode: TextTruncationMode?) {
         self.id = id
         self.foreground = foreground
         self.background = background
         self.lineLimit = lineLimit
+        self.truncationMode = truncationMode
     }
 }
 
@@ -38,6 +41,7 @@ class TextStyleConfigSettingHelper {
             foreground: TextColorConfigSettingHelper.save(value.foreground),
             background: TextColorConfigSettingHelper.save(value.background),
             lineLimit: value.lineLimit,
+            truncationMode: value.truncationMode,
         )
     }
     
@@ -52,6 +56,7 @@ class TextStyleConfigSettingHelper {
             foreground: TextColorConfigSettingHelper.load(setting.foreground),
             background: TextColorConfigSettingHelper.load(setting.background),
             lineLimit: setting.lineLimit,
+            truncationMode: setting.truncationMode,
         )
     }
 }
