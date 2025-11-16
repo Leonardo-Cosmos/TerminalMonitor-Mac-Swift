@@ -53,7 +53,7 @@ class TerminalFieldDetailViewModel: Identifiable {
 
 class TerminalLineDetailWindowController {
     
-    static func openWindow(for terminalLine: TerminalLineViewModel) {
+    static func openWindow(for terminalLine: TerminalLine) {
         
         let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 600)
         let window = NSWindow(

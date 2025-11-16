@@ -73,7 +73,7 @@ struct FieldDisplayDetailView: View {
             }
             .padding()
         }
-        .frame(minWidth: 400)
+        .frame(minWidth: 600)
     }
 }
 
@@ -130,7 +130,7 @@ class FieldDisplayDetailWindowController {
     
     static func openWindow(for fieldDisplayConfig: Binding<FieldDisplayConfig>, onSave: ((FieldDisplayConfig) -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 400, height: 200)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 600, height: 400)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],

@@ -113,7 +113,7 @@ struct TerminalView: View {
                     TableColumnForEach(terminalConfig.visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
-                                if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey] {
+                                if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.id] {
                                     buildCell(fieldViewModel: fieldViewModel)
                                 } else {
                                     Text("")
@@ -198,14 +198,13 @@ struct TerminalView: View {
     private func buildCell(fieldViewModel: TerminalFieldViewModel) -> some View {
         if fieldViewModel.customizeStyle {
             Text(fieldViewModel.text)
-                .onCondition(fieldViewModel.lineLimit != nil) { view in
-                    view.lineLimit(fieldViewModel.lineLimit)
-                }
+                .lineLimit(fieldViewModel.lineLimit)
                 .onCondition(fieldViewModel.background != nil) { view in
                     view.background(fieldViewModel.background)
                 }
         } else {
             Text(fieldViewModel.text)
+                .lineLimit(nil)
         }
     }
     
@@ -228,8 +227,8 @@ struct TerminalView: View {
     private func showDetailWindow() {
         
         if let selectedLine = selectedLineId {
-            if let lineViewModel = lineViewModels.first(where: { $0.id == selectedLine }) {
-                TerminalLineDetailWindowController.openWindow(for: lineViewModel)
+            if let terminalLine = shownLines.first(where: { $0.id == selectedLine }) {
+                TerminalLineDetailWindowController.openWindow(for: terminalLine)
             }
         }
     }
@@ -462,13 +461,13 @@ struct TerminalView: View {
             return
         }
         
-        var lineFieldDict: [String: TerminalFieldViewModel] = [:]
+        var lineFieldDict: [UUID: TerminalFieldViewModel] = [:]
         for fieldDisplayConfig in fieldConfigs {
             let fieldTextStyle = fieldDisplayConfig.customizeStyle ?
             fieldDisplayConfig.style : TextStyleConfig.default()
             
             if let lineField = terminalLine.lineFieldDict[fieldDisplayConfig.fieldKey] {
-                lineFieldDict[lineField.fieldKey] = TerminalFieldViewModel(
+                lineFieldDict[fieldDisplayConfig.id] = TerminalFieldViewModel(
                     text: lineField.text,
                     customizeStyle: fieldDisplayConfig.customizeStyle,
                     foreground: fieldTextStyle.foreground?.color,
@@ -493,7 +492,7 @@ struct TerminalLineViewModel: Identifiable {
     
     let id: UUID
     
-    let lineFieldDict: [String: TerminalFieldViewModel]
+    let lineFieldDict: [UUID: TerminalFieldViewModel]
 }
 
 struct TerminalFieldViewModel: Identifiable {
