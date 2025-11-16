@@ -110,15 +110,14 @@ struct TerminalView: View {
             
             ScrollViewReader { proxy in
                 Table(lineViewModels, selection: $selectedLineId) {
-                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
+                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
-                                let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
-                                Text(fieldViewModel?.text ?? "")
-                                    .lineLimit(nil)
-                                    .onCondition(fieldViewModel?.background != nil) { view in
-                                        view.background(fieldViewModel?.background!)
-                                    }
+                                if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey] {
+                                    buildCell(fieldViewModel: fieldViewModel)
+                                } else {
+                                    Text("")
+                                }
                             }
                         }
                     }
@@ -192,6 +191,21 @@ struct TerminalView: View {
             } else {
                 Self.logger.error("Missing userInfo in \(Notification.Name.terminalLinesRemovedEvent.rawValue)")
             }
+        }
+    }
+    
+    @ViewBuilder
+    private func buildCell(fieldViewModel: TerminalFieldViewModel) -> some View {
+        if fieldViewModel.customizeStyle {
+            Text(fieldViewModel.text)
+                .onCondition(fieldViewModel.lineLimit != nil) { view in
+                    view.lineLimit(fieldViewModel.lineLimit)
+                }
+                .onCondition(fieldViewModel.background != nil) { view in
+                    view.background(fieldViewModel.background)
+                }
+        } else {
+            Text(fieldViewModel.text)
         }
     }
     
@@ -450,10 +464,16 @@ struct TerminalView: View {
         
         var lineFieldDict: [String: TerminalFieldViewModel] = [:]
         for fieldDisplayConfig in fieldConfigs {
+            let fieldTextStyle = fieldDisplayConfig.customizeStyle ?
+            fieldDisplayConfig.style : TextStyleConfig.default()
+            
             if let lineField = terminalLine.lineFieldDict[fieldDisplayConfig.fieldKey] {
                 lineFieldDict[lineField.fieldKey] = TerminalFieldViewModel(
                     text: lineField.text,
-//                    background: lineField.text.range(of: "[135]", options: .regularExpression) != nil ? .green : nil
+                    customizeStyle: fieldDisplayConfig.customizeStyle,
+                    foreground: fieldTextStyle.foreground?.color,
+                    background: fieldTextStyle.background?.color,
+                    lineLimit: fieldTextStyle.lineLimit
                 )
             }
         }
@@ -482,5 +502,11 @@ struct TerminalFieldViewModel: Identifiable {
     
     let text: String
     
-    let background: Color? = nil
+    let customizeStyle: Bool
+    
+    let foreground: Color?
+    
+    let background: Color?
+    
+    let lineLimit: Int?
 }
