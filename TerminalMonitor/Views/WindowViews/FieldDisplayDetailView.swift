@@ -56,6 +56,11 @@ struct FieldDisplayDetailView: View {
                         TextStyleView(viewModel: viewModel.style)
                     }
                     .disabled(!viewModel.customizeStyle)
+                    
+                    GroupBox(label: Text("Conditions")) {
+                        TextStyleConditionListView(styleConditions: $viewModel.conditions)
+                    }
+                    .disabled(!viewModel.customizeStyle)
                 }
             }
             
@@ -73,7 +78,7 @@ struct FieldDisplayDetailView: View {
             }
             .padding()
         }
-        .frame(minWidth: 600)
+        .frame(minWidth: 600, minHeight: 450)
     }
 }
 
@@ -89,12 +94,15 @@ class FieldDisplayDetailViewModel: ObservableObject {
     
     @Published var style: TextStyleViewModel
     
-    init(fieldKey: String, hidden: Bool, headerName: String, customizeStyle: Bool, style: TextStyleViewModel) {
+    @Published var conditions: [TextStyleConditionViewModel]
+    
+    init(fieldKey: String, hidden: Bool, headerName: String, customizeStyle: Bool, style: TextStyleViewModel, conditions: [TextStyleConditionViewModel]) {
         self.fieldKey = fieldKey
         self.hidden = hidden
         self.headerName = headerName
         self.customizeStyle = customizeStyle
         self.style = style
+        self.conditions = conditions
     }
     
     convenience init(fieldKey: String) {
@@ -103,17 +111,8 @@ class FieldDisplayDetailViewModel: ObservableObject {
             hidden: false,
             headerName: "",
             customizeStyle: false,
-            style: TextStyleViewModel()
-        )
-    }
-    
-    static func from(_ fieldDisplayConfig: FieldDisplayConfig) -> FieldDisplayDetailViewModel {
-        FieldDisplayDetailViewModel(
-            fieldKey: fieldDisplayConfig.fieldKey,
-            hidden: fieldDisplayConfig.hidden,
-            headerName: fieldDisplayConfig.headerName ?? "",
-            customizeStyle: fieldDisplayConfig.customizeStyle,
-            style: TextStyleViewModel.from(fieldDisplayConfig.style)
+            style: TextStyleViewModel(),
+            conditions: [],
         )
     }
     
@@ -123,6 +122,18 @@ class FieldDisplayDetailViewModel: ObservableObject {
         fieldDisplayConfig.headerName = headerName.isEmpty ? nil : headerName
         fieldDisplayConfig.customizeStyle = customizeStyle
         style.to(fieldDisplayConfig.style)
+        fieldDisplayConfig.conditions = conditions.map { $0.to() }
+    }
+    
+    static func from(_ fieldDisplayConfig: FieldDisplayConfig) -> FieldDisplayDetailViewModel {
+        FieldDisplayDetailViewModel(
+            fieldKey: fieldDisplayConfig.fieldKey,
+            hidden: fieldDisplayConfig.hidden,
+            headerName: fieldDisplayConfig.headerName ?? "",
+            customizeStyle: fieldDisplayConfig.customizeStyle,
+            style: TextStyleViewModel.from(fieldDisplayConfig.style),
+            conditions: fieldDisplayConfig.conditions.map { TextStyleConditionViewModel.from($0) }
+        )
     }
 }
 
@@ -130,7 +141,7 @@ class FieldDisplayDetailWindowController {
     
     static func openWindow(for fieldDisplayConfig: Binding<FieldDisplayConfig>, onSave: ((FieldDisplayConfig) -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 600, height: 400)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 600)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],

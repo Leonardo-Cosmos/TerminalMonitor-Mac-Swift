@@ -32,7 +32,7 @@ struct TextStyleView: View {
                             .disabled(!viewModel.enableForeground &&
                                       viewModel.foregroundColorMode == .fixed)
                     }
-                    .padding()
+                    .padding(.horizontal)
                     
                     HStack {
                         Toggle("", isOn: $viewModel.enableBackground)
@@ -51,7 +51,7 @@ struct TextStyleView: View {
                             .disabled(!viewModel.enableBackground &&
                                       viewModel.backgroundColorMode == .fixed)
                     }
-                    .padding()
+                    .padding(.horizontal)
                 }
             }
             
@@ -65,6 +65,7 @@ struct TextStyleView: View {
                         NumericTextField(value: $viewModel.lineLimit, minValue: 1, maxValue: 10)
                             .disabled(!viewModel.enableLineLimit)
                     }
+                    .padding(.horizontal)
                     
                     HStack {
                         Toggle("", isOn: $viewModel.enableTruncationMode)
@@ -79,6 +80,7 @@ struct TextStyleView: View {
                         }
                         .disabled(!viewModel.enableTruncationMode)
                     }
+                    .padding(.horizontal)
                 }
             }
         }
@@ -137,21 +139,6 @@ class TextStyleViewModel: ObservableObject {
         )
     }
     
-    static func from(_ textStyleConfig: TextStyleConfig) -> TextStyleViewModel {
-        TextStyleViewModel(
-            enableForeground: textStyleConfig.foreground != nil,
-            foregroundColor: textStyleConfig.foreground?.color ?? .primary,
-            foregroundColorMode: textStyleConfig.foreground?.mode ?? .fixed,
-            enableBackground: textStyleConfig.background != nil,
-            backgroundColor: textStyleConfig.background?.color ?? .clear,
-            backgroundColorMode: textStyleConfig.background?.mode ?? .fixed,
-            enableLineLimit: textStyleConfig.lineLimit != nil,
-            lineLimit: textStyleConfig.lineLimit ?? 1,
-            enableTruncationMode: textStyleConfig.truncationMode != nil,
-            truncationMode: textStyleConfig.truncationMode ?? .tail,
-        )
-    }
-    
     func to(_ textStyleConfig: TextStyleConfig) {
         if enableForeground {
             if let colorConfig = textStyleConfig.foreground {
@@ -192,6 +179,27 @@ class TextStyleViewModel: ObservableObject {
         } else {
             textStyleConfig.truncationMode = nil
         }
+    }
+    
+    func to() -> TextStyleConfig {
+        let textStyleConfig = TextStyleConfig()
+        to(textStyleConfig)
+        return textStyleConfig
+    }
+    
+    static func from(_ textStyleConfig: TextStyleConfig) -> TextStyleViewModel {
+        TextStyleViewModel(
+            enableForeground: textStyleConfig.foreground != nil,
+            foregroundColor: textStyleConfig.foreground?.color ?? .primary,
+            foregroundColorMode: textStyleConfig.foreground?.mode ?? .fixed,
+            enableBackground: textStyleConfig.background != nil,
+            backgroundColor: textStyleConfig.background?.color ?? .clear,
+            backgroundColorMode: textStyleConfig.background?.mode ?? .fixed,
+            enableLineLimit: textStyleConfig.lineLimit != nil,
+            lineLimit: textStyleConfig.lineLimit ?? 1,
+            enableTruncationMode: textStyleConfig.truncationMode != nil,
+            truncationMode: textStyleConfig.truncationMode ?? .tail,
+        )
     }
 }
 

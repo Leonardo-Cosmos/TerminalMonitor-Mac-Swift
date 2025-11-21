@@ -469,10 +469,19 @@ struct TerminalView: View {
         
         var lineFieldDict: [UUID: TerminalFieldViewModel] = [:]
         for fieldDisplayConfig in fieldConfigs {
-            let fieldTextStyle = fieldDisplayConfig.customizeStyle ?
-            fieldDisplayConfig.style : TextStyleConfig.default()
-            
+
             if let lineField = terminalLine.lineFieldDict[fieldDisplayConfig.fieldKey] {
+                
+                let fieldTextStyle: TextStyleConfig
+                if fieldDisplayConfig.customizeStyle {
+                    fieldTextStyle = findMatchedStyleCondition(
+                        terminalLine: terminalLine,
+                        styleConditions: fieldDisplayConfig.conditions,
+                        defaultStyle: fieldDisplayConfig.style)
+                } else {
+                    fieldTextStyle = TextStyleConfig.default()
+                }
+                
                 lineFieldDict[fieldDisplayConfig.id] = TerminalFieldViewModel(
                     text: lineField.text,
                     customizeStyle: fieldDisplayConfig.customizeStyle,
@@ -488,6 +497,12 @@ struct TerminalView: View {
             id: terminalLine.id,
             lineFieldDict: lineFieldDict
         ))
+    }
+    
+    private func findMatchedStyleCondition(terminalLine: TerminalLine, styleConditions: [TextStyleCondition], defaultStyle: TextStyleConfig) -> TextStyleConfig {
+        
+        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, fieldCondition: $0.condition) })
+        return matchedStyleCondition?.style ?? defaultStyle
     }
 }
 

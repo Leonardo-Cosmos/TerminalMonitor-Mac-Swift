@@ -76,7 +76,7 @@ class FieldCondition: Condition {
     }
     
     private func updatePublishedProperties() {
-        self.conditionDescription = "\(fieldKey) \(matchOperator.description) \(targetValue) "
+        self.conditionDescription = "\(fieldKey) \(matchOperator.description) \(targetValue)"
     }
 }
 
