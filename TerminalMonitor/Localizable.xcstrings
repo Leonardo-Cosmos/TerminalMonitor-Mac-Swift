@@ -39,6 +39,9 @@
     "Add Command" : {
 
     },
+    "Alignment" : {
+
+    },
     "Apply" : {
 
     },
@@ -64,6 +67,9 @@
 
     },
     "Cancel" : {
+
+    },
+    "Cell Background" : {
 
     },
     "Clear" : {

@@ -15,14 +15,20 @@ class TextStyleConfigSetting: Codable {
     
     let background: TextColorConfigSetting?
     
+    let cellBackground: TextColorConfigSetting?
+    
+    let alignment: FrameAlignment?
+    
     let lineLimit: Int?
     
     let truncationMode: TextTruncationMode?
     
-    init(id: String?, foreground: TextColorConfigSetting?, background: TextColorConfigSetting?, lineLimit: Int?, truncationMode: TextTruncationMode?) {
+    init(id: String?, foreground: TextColorConfigSetting?, background: TextColorConfigSetting?, cellBackground: TextColorConfigSetting?, alignment: FrameAlignment?, lineLimit: Int?, truncationMode: TextTruncationMode?) {
         self.id = id
         self.foreground = foreground
         self.background = background
+        self.cellBackground = cellBackground
+        self.alignment = alignment
         self.lineLimit = lineLimit
         self.truncationMode = truncationMode
     }
@@ -40,6 +46,8 @@ class TextStyleConfigSettingHelper {
             id: value.id.uuidString,
             foreground: TextColorConfigSettingHelper.save(value.foreground),
             background: TextColorConfigSettingHelper.save(value.background),
+            cellBackground: TextColorConfigSettingHelper.save(value.cellBackground),
+            alignment: value.alignment,
             lineLimit: value.lineLimit,
             truncationMode: value.truncationMode,
         )
@@ -55,6 +63,8 @@ class TextStyleConfigSettingHelper {
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             foreground: TextColorConfigSettingHelper.load(setting.foreground),
             background: TextColorConfigSettingHelper.load(setting.background),
+            cellBackground: TextColorConfigSettingHelper.load(setting.cellBackground),
+            alignment: setting.alignment,
             lineLimit: setting.lineLimit,
             truncationMode: setting.truncationMode,
         )

@@ -197,17 +197,30 @@ struct TerminalView: View {
     @ViewBuilder
     private func buildCell(fieldViewModel: TerminalFieldViewModel) -> some View {
         if fieldViewModel.customizeStyle {
-            Text(fieldViewModel.text)
-                .lineLimit(fieldViewModel.lineLimit)
-                .onCondition(fieldViewModel.truncationMode != nil) { view in
-                    view.truncationMode(fieldViewModel.truncationMode!)
+            ZStack {
+                if fieldViewModel.cellBackground != nil {
+                    fieldViewModel.cellBackground
                 }
-                .onCondition(fieldViewModel.foreground != nil) { view in
-                    view.foregroundStyle(fieldViewModel.foreground!)
-                }
-                .onCondition(fieldViewModel.background != nil) { view in
-                    view.background(fieldViewModel.background!)
-                }
+                
+                Text(fieldViewModel.text)
+                    .lineLimit(fieldViewModel.lineLimit)
+                    .onCondition(fieldViewModel.alignment != nil) { view in
+                        view.frame(
+                            maxWidth: .infinity,
+                            maxHeight: .infinity,
+                            alignment: fieldViewModel.alignment!
+                        )
+                    }
+                    .onCondition(fieldViewModel.truncationMode != nil) { view in
+                        view.truncationMode(fieldViewModel.truncationMode!)
+                    }
+                    .onCondition(fieldViewModel.foreground != nil) { view in
+                        view.foregroundStyle(fieldViewModel.foreground!)
+                    }
+                    .onCondition(fieldViewModel.background != nil) { view in
+                        view.background(fieldViewModel.background!)
+                    }
+            }
         } else {
             Text(fieldViewModel.text)
                 .lineLimit(nil)
@@ -487,6 +500,8 @@ struct TerminalView: View {
                     customizeStyle: fieldDisplayConfig.customizeStyle,
                     foreground: fieldTextStyle.foreground?.color,
                     background: fieldTextStyle.background?.color,
+                    cellBackground: fieldTextStyle.cellBackground?.color,
+                    alignment: fieldTextStyle.alignment?.value,
                     lineLimit: fieldTextStyle.lineLimit,
                     truncationMode: fieldTextStyle.truncationMode?.mode,
                 )
@@ -528,6 +543,10 @@ struct TerminalFieldViewModel: Identifiable {
     let foreground: Color?
     
     let background: Color?
+    
+    let cellBackground: Color?
+    
+    let alignment: Alignment?
     
     let lineLimit: Int?
     
