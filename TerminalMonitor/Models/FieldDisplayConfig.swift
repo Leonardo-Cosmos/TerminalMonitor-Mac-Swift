@@ -29,31 +29,35 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
     
     var style: TextStyleConfig
     
+    var conditions: [TextStyleCondition]
+    
     @Published var fieldDescription: String
     
     @Published var fieldColumnHeader: String
     
-    init(id: UUID, fieldKey: String, hidden: Bool, headerName: String? = nil, customizeStyle: Bool, style: TextStyleConfig) {
+    init(id: UUID, fieldKey: String, hidden: Bool, headerName: String? = nil, customizeStyle: Bool, style: TextStyleConfig, conditions: [TextStyleCondition] = []) {
         self.id = id
         self.fieldKey = fieldKey
         self.hidden = hidden
         self.headerName = headerName
         self.customizeStyle = customizeStyle
         self.style = style
+        self.conditions = conditions
         self.fieldDescription = fieldKey
         self.fieldColumnHeader = fieldKey
         
         updatePublishedProperties()
     }
     
-    convenience init(fieldKey: String, hidden: Bool = false, headerName: String? = nil, customizeStyle: Bool = false, style: TextStyleConfig) {
+    convenience init(fieldKey: String, hidden: Bool = false, headerName: String? = nil, customizeStyle: Bool = false, style: TextStyleConfig, conditions: [TextStyleCondition] = []) {
         self.init(
             id: UUID(),
             fieldKey: fieldKey,
             hidden: hidden,
             headerName: headerName,
             customizeStyle: customizeStyle,
-            style: style
+            style: style,
+            conditions: conditions,
         )
     }
     
@@ -64,6 +68,7 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
             headerName: self.headerName,
             customizeStyle: self.customizeStyle,
             style: self.style.copy() as! TextStyleConfig,
+            conditions: self.conditions.map { $0.copy() as! TextStyleCondition }
         )
     }
     

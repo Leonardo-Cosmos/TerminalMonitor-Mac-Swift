@@ -17,30 +17,52 @@ struct FieldDisplayDetailView: View {
     
     var body: some View {
         VStack {
-            HStack {
-                Text("Field Key")
-                    .frame(width: 80)
-                TextField("Full path of the field", text: $viewModel.fieldKey)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            GroupBox(label: Text("General")) {
+                VStack {
+                    HStack {
+                        Text("Field Key")
+                            .frame(width: 80)
+                        TextField("Full path of the field", text: $viewModel.fieldKey)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Header")
+                            .frame(width: 80)
+                        TextField("Column header", text: $viewModel.headerName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    
+                    HStack {
+                        Text("Hide this column")
+                            .frame(width: 120)
+                        Toggle("", isOn: $viewModel.hidden)
+                        
+                        Spacer()
+                    }
+                }
             }
-            .padding()
             
-            HStack {
-                Text("Header")
-                    .frame(width: 80)
-                TextField("Column header", text: $viewModel.headerName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            GroupBox(label: Text("Text Style")) {
+                VStack {
+                    HStack {
+                        Text("Customize style")
+                        Toggle("", isOn: $viewModel.customizeStyle)
+                        
+                        Spacer()
+                    }
+                    
+                    GroupBox(label: Text("Default")) {
+                        TextStyleView(viewModel: viewModel.style)
+                    }
+                    .disabled(!viewModel.customizeStyle)
+                    
+                    GroupBox(label: Text("Conditions")) {
+                        TextStyleConditionListView(styleConditions: $viewModel.conditions)
+                    }
+                    .disabled(!viewModel.customizeStyle)
+                }
             }
-            .padding()
-            
-            HStack {
-                Text("Hide this column")
-                    .frame(width: 120)
-                Toggle("", isOn: $viewModel.hidden)
-                
-                Spacer()
-            }
-            .padding()
             
             HStack {
                 Button("Cancel") {
@@ -55,10 +77,8 @@ struct FieldDisplayDetailView: View {
                 .keyboardShortcut(.defaultAction)
             }
             .padding()
-            
-            
         }
-        .frame(minWidth: 400)
+        .frame(minWidth: 600, minHeight: 450)
     }
 }
 
@@ -74,12 +94,15 @@ class FieldDisplayDetailViewModel: ObservableObject {
     
     @Published var style: TextStyleViewModel
     
-    init(fieldKey: String, hidden: Bool, headerName: String, customizeStyle: Bool, style: TextStyleViewModel) {
+    @Published var conditions: [TextStyleConditionViewModel]
+    
+    init(fieldKey: String, hidden: Bool, headerName: String, customizeStyle: Bool, style: TextStyleViewModel, conditions: [TextStyleConditionViewModel]) {
         self.fieldKey = fieldKey
         self.hidden = hidden
         self.headerName = headerName
         self.customizeStyle = customizeStyle
         self.style = style
+        self.conditions = conditions
     }
     
     convenience init(fieldKey: String) {
@@ -88,7 +111,28 @@ class FieldDisplayDetailViewModel: ObservableObject {
             hidden: false,
             headerName: "",
             customizeStyle: false,
-            style: TextStyleViewModel()
+            style: TextStyleViewModel(),
+            conditions: [],
+        )
+    }
+    
+    func to(_ fieldDisplayConfig: FieldDisplayConfig) {
+        fieldDisplayConfig.fieldKey = fieldKey
+        fieldDisplayConfig.hidden = hidden
+        fieldDisplayConfig.headerName = headerName.isEmpty ? nil : headerName
+        fieldDisplayConfig.customizeStyle = customizeStyle
+        style.to(fieldDisplayConfig.style)
+        fieldDisplayConfig.conditions = conditions.map { $0.to() }
+    }
+    
+    static func from(_ fieldDisplayConfig: FieldDisplayConfig) -> FieldDisplayDetailViewModel {
+        FieldDisplayDetailViewModel(
+            fieldKey: fieldDisplayConfig.fieldKey,
+            hidden: fieldDisplayConfig.hidden,
+            headerName: fieldDisplayConfig.headerName ?? "",
+            customizeStyle: fieldDisplayConfig.customizeStyle,
+            style: TextStyleViewModel.from(fieldDisplayConfig.style),
+            conditions: fieldDisplayConfig.conditions.map { TextStyleConditionViewModel.from($0) }
         )
     }
 }
@@ -97,7 +141,7 @@ class FieldDisplayDetailWindowController {
     
     static func openWindow(for fieldDisplayConfig: Binding<FieldDisplayConfig>, onSave: ((FieldDisplayConfig) -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 200)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 1000, height: 800)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],
@@ -106,20 +150,11 @@ class FieldDisplayDetailWindowController {
         )
         
         let fieldDisplayConfigValue = fieldDisplayConfig.wrappedValue
-        let viewModel = FieldDisplayDetailViewModel(
-            fieldKey: fieldDisplayConfigValue.fieldKey,
-            hidden: fieldDisplayConfigValue.hidden,
-            headerName: fieldDisplayConfigValue.headerName ?? "",
-            customizeStyle: fieldDisplayConfigValue.customizeStyle,
-            style: TextStyleViewModel()
-        )
+        let viewModel = FieldDisplayDetailViewModel.from(fieldDisplayConfigValue)
         
         let view = FieldDisplayDetailView(window: window, viewModel: viewModel, onSave: {
           
-            fieldDisplayConfigValue.fieldKey = viewModel.fieldKey
-            fieldDisplayConfigValue.hidden = viewModel.hidden
-            fieldDisplayConfigValue.headerName = viewModel.headerName.isEmpty ? nil : viewModel.headerName
-            fieldDisplayConfigValue.customizeStyle = viewModel.customizeStyle
+            viewModel.to(fieldDisplayConfigValue)
             
             onSave?(fieldDisplayConfig.wrappedValue)
         })

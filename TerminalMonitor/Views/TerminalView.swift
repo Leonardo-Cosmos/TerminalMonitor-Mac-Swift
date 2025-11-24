@@ -110,15 +110,14 @@ struct TerminalView: View {
             
             ScrollViewReader { proxy in
                 Table(lineViewModels, selection: $selectedLineId) {
-                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { fieldDisplayConfig in
+                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
-                                let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.fieldKey]
-                                Text(fieldViewModel?.text ?? "")
-                                    .lineLimit(nil)
-                                    .onCondition(fieldViewModel?.background != nil) { view in
-                                        view.background(fieldViewModel?.background!)
-                                    }
+                                if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.id] {
+                                    buildCell(fieldViewModel: fieldViewModel)
+                                } else {
+                                    Text("")
+                                }
                             }
                         }
                     }
@@ -149,6 +148,13 @@ struct TerminalView: View {
             }
         }
         .contextMenu {
+            SymbolLabelButton(titleKey: "Detail", systemImage: "square", symbolColor: Color(nsColor: .clear)) {
+                showDetailWindow()
+            }
+            .disabled(selectedLineId == nil)
+            
+            Divider()
+            
             SymbolLabelButton(titleKey: "Clear All until This", systemImage: "trash", symbolColor: Color(nsColor: .black)) {
                 clearTerminal()
             }
@@ -188,6 +194,39 @@ struct TerminalView: View {
         }
     }
     
+    @ViewBuilder
+    private func buildCell(fieldViewModel: TerminalFieldViewModel) -> some View {
+        if fieldViewModel.customizeStyle {
+            ZStack {
+                if fieldViewModel.cellBackground != nil {
+                    fieldViewModel.cellBackground
+                }
+                
+                Text(fieldViewModel.text)
+                    .lineLimit(fieldViewModel.lineLimit)
+                    .onCondition(fieldViewModel.alignment != nil) { view in
+                        view.frame(
+                            maxWidth: .infinity,
+                            maxHeight: .infinity,
+                            alignment: fieldViewModel.alignment!
+                        )
+                    }
+                    .onCondition(fieldViewModel.truncationMode != nil) { view in
+                        view.truncationMode(fieldViewModel.truncationMode!)
+                    }
+                    .onCondition(fieldViewModel.foreground != nil) { view in
+                        view.foregroundStyle(fieldViewModel.foreground!)
+                    }
+                    .onCondition(fieldViewModel.background != nil) { view in
+                        view.background(fieldViewModel.background!)
+                    }
+            }
+        } else {
+            Text(fieldViewModel.text)
+                .lineLimit(nil)
+        }
+    }
+    
     private static func selectedFoundNumberDescription(gte start: Int? = nil, lte end: Int? = nil) -> String {
         if let start = start, let end = end {
             if start == end {
@@ -201,6 +240,15 @@ struct TerminalView: View {
         
         if let selectedLine = selectedLineId {
             terminalLineViewer.removeTerminalLinesUtil(terminalLineId: selectedLine)
+        }
+    }
+    
+    private func showDetailWindow() {
+        
+        if let selectedLine = selectedLineId {
+            if let terminalLine = shownLines.first(where: { $0.id == selectedLine }) {
+                TerminalLineDetailWindowController.openWindow(for: terminalLine)
+            }
         }
     }
     
@@ -432,12 +480,30 @@ struct TerminalView: View {
             return
         }
         
-        var lineFieldDict: [String: TerminalFieldViewModel] = [:]
+        var lineFieldDict: [UUID: TerminalFieldViewModel] = [:]
         for fieldDisplayConfig in fieldConfigs {
+
             if let lineField = terminalLine.lineFieldDict[fieldDisplayConfig.fieldKey] {
-                lineFieldDict[lineField.fieldKey] = TerminalFieldViewModel(
+                
+                let fieldTextStyle: TextStyleConfig
+                if fieldDisplayConfig.customizeStyle {
+                    fieldTextStyle = findMatchedStyleCondition(
+                        terminalLine: terminalLine,
+                        styleConditions: fieldDisplayConfig.conditions,
+                        defaultStyle: fieldDisplayConfig.style)
+                } else {
+                    fieldTextStyle = TextStyleConfig.default()
+                }
+                
+                lineFieldDict[fieldDisplayConfig.id] = TerminalFieldViewModel(
                     text: lineField.text,
-//                    background: lineField.text.range(of: "[135]", options: .regularExpression) != nil ? .green : nil
+                    customizeStyle: fieldDisplayConfig.customizeStyle,
+                    foreground: fieldTextStyle.foreground?.color,
+                    background: fieldTextStyle.background?.color,
+                    cellBackground: fieldTextStyle.cellBackground?.color,
+                    alignment: fieldTextStyle.alignment?.value,
+                    lineLimit: fieldTextStyle.lineLimit,
+                    truncationMode: fieldTextStyle.truncationMode?.mode,
                 )
             }
         }
@@ -446,6 +512,12 @@ struct TerminalView: View {
             id: terminalLine.id,
             lineFieldDict: lineFieldDict
         ))
+    }
+    
+    private func findMatchedStyleCondition(terminalLine: TerminalLine, styleConditions: [TextStyleCondition], defaultStyle: TextStyleConfig) -> TextStyleConfig {
+        
+        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, fieldCondition: $0.condition) })
+        return matchedStyleCondition?.style ?? defaultStyle
     }
 }
 
@@ -457,7 +529,7 @@ struct TerminalLineViewModel: Identifiable {
     
     let id: UUID
     
-    let lineFieldDict: [String: TerminalFieldViewModel]
+    let lineFieldDict: [UUID: TerminalFieldViewModel]
 }
 
 struct TerminalFieldViewModel: Identifiable {
@@ -466,5 +538,17 @@ struct TerminalFieldViewModel: Identifiable {
     
     let text: String
     
-    let background: Color? = nil
+    let customizeStyle: Bool
+    
+    let foreground: Color?
+    
+    let background: Color?
+    
+    let cellBackground: Color?
+    
+    let alignment: Alignment?
+    
+    let lineLimit: Int?
+    
+    let truncationMode: Text.TruncationMode?
 }

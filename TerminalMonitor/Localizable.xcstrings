@@ -39,6 +39,9 @@
     "Add Command" : {
 
     },
+    "Alignment" : {
+
+    },
     "Apply" : {
 
     },
@@ -57,10 +60,16 @@
     "Auto Scroll" : {
 
     },
+    "Background" : {
+
+    },
     "Browse" : {
 
     },
     "Cancel" : {
+
+    },
+    "Cell Background" : {
 
     },
     "Clear" : {
@@ -97,6 +106,9 @@
         }
       }
     },
+    "Color" : {
+
+    },
     "Column header" : {
 
     },
@@ -106,10 +118,25 @@
     "Command(*)" : {
 
     },
+    "Condition" : {
+
+    },
+    "Conditions" : {
+
+    },
+    "Customize style" : {
+
+    },
+    "Default" : {
+
+    },
     "Default to False when the Field is not Found" : {
 
     },
     "Default to True when the Field is not Found" : {
+
+    },
+    "Detail" : {
 
     },
     "Directory" : {
@@ -164,16 +191,25 @@
     "Find Previous" : {
 
     },
+    "Fixed" : {
+
+    },
+    "Foreground" : {
+
+    },
     "Full path of the executable file" : {
 
     },
     "Full path of the field" : {
 
     },
-    "Header" : {
+    "General" : {
 
     },
-    "Hello, World!" : {
+    "Head" : {
+
+    },
+    "Header" : {
 
     },
     "Hide this column" : {
@@ -191,6 +227,12 @@
     "Key 1" : {
       "extractionState" : "manual"
     },
+    "Layout" : {
+
+    },
+    "Line limit (1~10)" : {
+
+    },
     "Match all conditions" : {
 
     },
@@ -201,6 +243,9 @@
 
     },
     "Matching is not Inverted" : {
+
+    },
+    "Middle" : {
 
     },
     "Move Left" : {
@@ -279,6 +324,12 @@
     "Stop" : {
 
     },
+    "Tail" : {
+
+    },
+    "Text Style" : {
+
+    },
     "The working directory where to run the command" : {
 
     },
@@ -286,6 +337,9 @@
 
     },
     "This Condition is Enabled" : {
+
+    },
+    "Truncation" : {
 
     },
     "Unique name of the command" : {
