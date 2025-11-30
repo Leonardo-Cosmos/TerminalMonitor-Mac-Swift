@@ -27,7 +27,7 @@ struct ExecutionListView: View {
     
     var body: some View {
         ForEach(executions, id: \.id) { execution in
-            ExecutionListViewItem(
+            ExecutionListItemView(
                 execution: execution,
                 changeSet: $changeSet
             )
@@ -89,40 +89,6 @@ struct ExecutionListView: View {
     }
 }
 
-struct ExecutionListViewItem: View {
-    
-    @State var execution: ExecutionInfo
-    
-    @State var terminated = false
-    
-    @Binding var changeSet: Set<UUID>
-    
-    var body: some View {
-        HStack {
-            Text(execution.name)
-                .frame(alignment: .leading)
-            
-            Spacer()
-            
-            SymbolButton(systemImage: "arrow.circlepath", symbolColor: .blue) {
-                terminated = true
-                ExecutionListViewHelper.restartExecution(executionId: execution.id)
-            }
-            .disabled(terminated)
-            .help("Restart")
-            
-            SymbolButton(systemImage: "stop.fill", symbolColor: .red) {
-                terminated = true
-                ExecutionListViewHelper.stopExecution(executionId: execution.id)
-            }
-            .disabled(terminated)
-            .help("Stop")
-        }
-        .offset(y: changeSet.contains(execution.id) ? -10 : 0)
-        .opacity(changeSet.contains(execution.id) ? 0.1 : 1.0)
-    }
-}
-
 struct ExecutionListViewHelper {
     
     static func stopExecution(executionId: UUID) {
@@ -156,10 +122,6 @@ fileprivate class ExecutionDropDelegate: ListItemDropDelegate<ExecutionInfo, UUI
 #Preview {
     ExecutionListView(
         selection: Binding.constant(UUID()),
-        executions: [
-            ExecutionInfo(id: UUID(), name: "Console", status: .started),
-            ExecutionInfo(id: UUID(), name: "Application", status: .started),
-            ExecutionInfo(id: UUID(), name: "Tool", status: .started),
-        ]
+        executions: previewExecutionInfo()
     )
 }

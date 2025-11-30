@@ -36,64 +36,12 @@ struct ConditionListView: View {
         DisclosureGroup(isExpanded: $isExpanded, content: {
             HFlow {
                 ForEach(groupCondition.conditions) { condition in
-                    Button(action: { onConditionClicked(conditionId: condition.id)}) {
-                        HStack {
-                            Text(condition.conditionDescription)
-                                .lineLimit(1)
-                            
-                            HStack(spacing: 4) {
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.isInverted },
-                                        set: { condition.isInverted = $0 }
-                                    ),
-                                    toggleOnSystemImage: "minus.circle.fill",
-                                    toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: NSLocalizedString("Matching is Inverted", comment: ""),
-                                    toggleOffSystemImage: "largecircle.fill.circle",
-                                    toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: NSLocalizedString("Matching is not Inverted", comment: "")
-                                )
-                                
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.defaultResult },
-                                        set: { condition.defaultResult = $0 }
-                                    ),
-                                    toggleOnSystemImage: "star.fill",
-                                    toggleOnSystemColor: .yellow,
-                                    toggleOnHelpTextKey: NSLocalizedString("Default to True when the Field is not Found", comment: ""),
-                                    toggleOffSystemImage: "star",
-                                    toggleOffSystemColor: .yellow,
-                                    toggleOffHelpTextKey: NSLocalizedString("Default to False when the Field is not Found", comment: "")
-                                )
-                                
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.isDisabled },
-                                        set: { condition.isDisabled = $0 }
-                                    ),
-                                    toggleOnSystemImage: "pause.circle",
-                                    toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: NSLocalizedString("This Condition is Disabled", comment: ""),
-                                    toggleOffSystemImage: "dot.circle",
-                                    toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: NSLocalizedString("This Condition is Enabled", comment: "")
-                                )
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .foregroundStyle(buttonForeground(condition.id))
-                        .background(buttonBackground(condition.id))
-                        .backgroundStyle(buttonBackground(condition.id))
-                        .cornerRadius(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    ConditionListItemView(
+                        condition: condition,
+                        onConditionClicked: { onConditionClicked(conditionId: $0) },
+                        buttonForeground: buttonForeground,
+                        buttonBackground: buttonBackground,
+                    )
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
                             ConditionListHelper.openConditionDetailWindow(condition: condition)

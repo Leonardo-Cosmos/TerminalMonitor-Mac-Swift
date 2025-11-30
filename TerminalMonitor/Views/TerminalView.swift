@@ -27,6 +27,8 @@ struct TerminalView: View {
     
     @State private var terminalLineViewer: TerminalLineViewer = TerminalLineSupervisor.shared
     
+    @State private var visibleFields: [FieldDisplayConfig] = []
+    
     @State private var filterCondition = GroupCondition.default()
     
     @State private var findCondition = GroupCondition.default()
@@ -64,8 +66,8 @@ struct TerminalView: View {
     
     var body: some View {
         VStack {
-            FieldListView(visibleFields: terminalConfig.visibleFields, onFieldsApplied: { visibleFields in
-                applyVisibleFields(visibleFields: visibleFields)
+            FieldListView(visibleFields: $terminalConfig.visibleFields, onFieldsApplied: { visibleFields in
+                applyVisibleFields()
             })
             
             ConditionListView(title: "Filter", groupCondition: terminalConfig.filterCondition, onApplied: {
@@ -110,7 +112,7 @@ struct TerminalView: View {
             
             ScrollViewReader { proxy in
                 Table(lineViewModels, selection: $selectedLineId) {
-                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
+                    TableColumnForEach(visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
                                 if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.id] {
@@ -170,8 +172,11 @@ struct TerminalView: View {
             }
         }
         .onAppear {
-            filterCondition = terminalConfig.filterCondition
-            findCondition = terminalConfig.findCondition
+            visibleFields = TerminalViewHelper.updateFieldDisplayConfigs(
+                from: terminalConfig.visibleFields,
+                to: visibleFields)
+            filterCondition = terminalConfig.filterCondition.copy() as! GroupCondition
+            findCondition = terminalConfig.findCondition.copy() as! GroupCondition
             appendMatchedTerminalLines()
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
@@ -288,7 +293,7 @@ struct TerminalView: View {
     }
     
     private func filterTerminal() {
-        filterCondition = terminalConfig.filterCondition
+        filterCondition = terminalConfig.filterCondition.copy() as! GroupCondition
         
         lineViewModels.removeAll()
         
@@ -311,7 +316,7 @@ struct TerminalView: View {
     }
     
     private func findInTerminal() {
-        findCondition = terminalConfig.findCondition
+        findCondition = terminalConfig.findCondition.copy() as! GroupCondition
         foundLines.removeAll()
         
         let matcher = TerminalLineMatcher(matchCondition: findCondition)
@@ -441,11 +446,12 @@ struct TerminalView: View {
         lastScrollToLineIndex = shownIndex
     }
     
-    private func applyVisibleFields(visibleFields: [FieldDisplayConfig]) {
+    private func applyVisibleFields() {
         // Save column settings
         
-        terminalConfig.visibleFields.removeAll()
-        terminalConfig.visibleFields.append(contentsOf: visibleFields)
+        visibleFields = TerminalViewHelper.updateFieldDisplayConfigs(
+            from: terminalConfig.visibleFields,
+            to: visibleFields)
         
         lineViewModels.removeAll()
         
@@ -474,7 +480,7 @@ struct TerminalView: View {
     
     private func appendTerminalLine(terminalLine: TerminalLine) {
         
-        let fieldConfigs = terminalConfig.visibleFields
+        let fieldConfigs = visibleFields
             
         guard !fieldConfigs.isEmpty else {
             return

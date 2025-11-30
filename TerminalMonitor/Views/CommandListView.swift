@@ -30,7 +30,7 @@ struct CommandListView: View {
     var body: some View {
         
         ForEach($workspaceConfig.commands, id: \.id) { $command in
-            CommandListViewItem(
+            CommandListItemView(
                 command: $command,
                 runningSet: $runningSet
             )
@@ -105,39 +105,6 @@ struct CommandListView: View {
         }
     }
 }
-
-struct CommandListViewItem: View {
-    
-    @Binding var command: CommandConfig
-    
-    @Binding var runningSet: Set<UUID>
-    
-    @State var isHoveringStart = false
-    
-    @State var isHoveringStop = false
-    
-    var body: some View {
-        HStack {
-            Text(command.name)
-                .frame(alignment: .leading)
-            
-            Spacer()
-            
-            if runningSet.contains(command.id) {
-                SymbolButton(systemImage: "stop.fill", symbolColor: .red) {
-                    CommandListViewHelper.stopCommand(command)
-                }
-                .help("Stop")
-            }
-            
-            SymbolButton(systemImage: "play.fill", symbolColor: .green) {
-                CommandListViewHelper.startCommand(command)
-            }
-            .help("Start")
-        }
-    }
-}
-
 
 struct CommandListViewHelper {
     
