@@ -74,7 +74,6 @@ struct FieldConditionView: View {
                 )
             }
         }
-        .padding()
     }
 }
 
@@ -119,14 +118,41 @@ class FieldConditionViewModel: ObservableObject {
             targetValue: "",
         )
     }
+    
+    func to(_ fieldCondition: FieldCondition) {
+        fieldCondition.fieldKey = fieldKey
+        fieldCondition.matchOperator = matchOperator
+        fieldCondition.targetValue = targetValue
+        fieldCondition.isInverted = isInverted
+        fieldCondition.defaultResult = defaultResult
+        fieldCondition.isDisabled = isDisabled
+    }
+    
+    func to() -> FieldCondition {
+        FieldCondition(
+            fieldKey: fieldKey,
+            matchOperator: matchOperator,
+            targetValue: targetValue,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
+        )
+    }
+    
+    static func from(_ fieldCondition: FieldCondition) -> FieldConditionViewModel {
+        FieldConditionViewModel(
+            fieldKey: fieldCondition.fieldKey,
+            matchOperator: fieldCondition.matchOperator,
+            targetValue: fieldCondition.targetValue,
+            isInverted: fieldCondition.isInverted,
+            defaultResult: fieldCondition.defaultResult,
+            isDisabled: fieldCondition.isDisabled,
+        )
+    }
 }
 
 #Preview {
     FieldConditionView(
-        viewModel: FieldConditionViewModel(
-            fieldKey: "key",
-            matchOperator: .contains,
-            targetValue: "value"
-        )
+        viewModel: FieldConditionViewModel.from(previewFieldConditions()[0])
     )
 }

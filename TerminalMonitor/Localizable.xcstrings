@@ -248,17 +248,22 @@
     "Middle" : {
 
     },
+    "Move Down" : {
+
+    },
     "Move Left" : {
 
     },
     "Move Right" : {
 
     },
+    "Move Up" : {
+
+    },
     "Multiple Selection" : {
 
     },
     "Name" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

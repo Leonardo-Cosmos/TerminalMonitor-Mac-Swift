@@ -18,6 +18,7 @@ struct ConditionDetailView: View {
     var body: some View {
         VStack {
             FieldConditionView(viewModel: viewModel.fieldCondition)
+                .padding()
             
             HStack {
                 Button("Cancel") {
@@ -62,10 +63,6 @@ class ConditionDetailViewModel: ObservableObject {
             groupCondition: GroupConditionViewModel()
         )
     }
-}
-
-class GroupConditionViewModel: ObservableObject {
-    
 }
 
 class ConditionDetailWindowController {
