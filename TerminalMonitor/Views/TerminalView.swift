@@ -287,7 +287,9 @@ struct TerminalView: View {
         shownLines.removeAll()
         shownLines.append(contentsOf: remainingLines)
         
-        lineViewModels.removeAll(where: { removedLineIdSet.contains($0.id) })
+        let remainingLineViewModels = lineViewModels.filter { !removedLineIdSet.contains($0.id) }
+        lineViewModels.removeAll()
+        lineViewModels.append(contentsOf: remainingLineViewModels)
         
         findInTerminal()
     }
