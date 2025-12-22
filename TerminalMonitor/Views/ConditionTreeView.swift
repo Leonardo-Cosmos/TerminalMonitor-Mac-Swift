@@ -17,7 +17,7 @@ struct ConditionTreeView: View {
     
     @Binding var isDisabled: Bool
     
-    @State var rootConditions: [ConditionTreeNodeViewModel]
+    @Binding var rootConditions: [ConditionTreeNodeViewModel]
     
     @State private var selectedId: UUID?
     
@@ -78,19 +78,19 @@ struct ConditionTreeView: View {
                     removeSelectedCondition()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedId != nil)
+                .disabled(selectedId == nil)
                 
                 Button("Move Up", systemImage: "arrowshape.up.fill") {
                     moveSelectedConditionsUp()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedId != nil)
+                .disabled(selectedId == nil)
                 
                 Button("Move Down", systemImage: "arrowshape.down.fill") {
                     moveSelectedConditionsDown()
                 }
                 .labelStyle(.iconOnly)
-                .disabled(selectedId != nil)
+                .disabled(selectedId == nil)
             }
             
             List(rootConditions, children: \.conditions, selection: $selectedId) { condition in
@@ -113,29 +113,65 @@ struct ConditionTreeView: View {
             selectedCondition = nodeIdDict[selectedId]
         }
         
-        if let parentConditionNode = selectedCondition?.parent {
-            parentConditionNode.conditions = ConditionTreeHelper.addCondition(
-                condition: newCondition, conditions: parentConditionNode.conditions!, replacing: selectedId)
+        if let parentCondition = selectedCondition?.parent {
+            parentCondition.conditions = ConditionTreeHelper.addCondition(
+                condition: newCondition, conditions: parentCondition.conditions!, replacing: selectedId)
         } else {
             rootConditions = ConditionTreeHelper.addCondition(condition: newCondition, conditions: rootConditions, replacing: selectedId)
         }
     }
     
     private func removeSelectedCondition() {
-        var selectedCondition: ConditionTreeNodeViewModel? = nil
-        if let selectedId = selectedId {
-            selectedCondition = nodeIdDict[selectedId]
+        
+        guard let selectedId = selectedId else {
+            return
+        }
+         
+        guard let selectedCondition = nodeIdDict[selectedId] else {
+            return
         }
         
+        if let parentCondition = selectedCondition.parent {
+            parentCondition.conditions = ConditionTreeHelper.removeCondition(conditionId: selectedId, conditions: parentCondition.conditions!)
+        } else {
+            rootConditions = ConditionTreeHelper.removeCondition(conditionId: selectedId, conditions: rootConditions)
+        }
         
+        nodeIdDict[selectedId] = nil
     }
     
     private func moveSelectedConditionsUp() {
         
+        guard let selectedId = selectedId else {
+            return
+        }
+         
+        guard let selectedCondition = nodeIdDict[selectedId] else {
+            return
+        }
+        
+        if let parentCondition = selectedCondition.parent {
+            parentCondition.conditions = ConditionTreeHelper.moveConditionUp(conditionId: selectedId, conditions: parentCondition.conditions!)
+        } else {
+            rootConditions = ConditionTreeHelper.moveConditionUp(conditionId: selectedId, conditions: rootConditions)
+        }
     }
     
     private func moveSelectedConditionsDown() {
         
+        guard let selectedId = selectedId else {
+            return
+        }
+         
+        guard let selectedCondition = nodeIdDict[selectedId] else {
+            return
+        }
+        
+        if let parentCondition = selectedCondition.parent {
+            parentCondition.conditions = ConditionTreeHelper.moveConditionDown(conditionId: selectedId, conditions: parentCondition.conditions!)
+        } else {
+            rootConditions = ConditionTreeHelper.moveConditionDown(conditionId: selectedId, conditions: rootConditions)
+        }
     }
 }
 
@@ -197,9 +233,46 @@ struct ConditionTreeHelper {
         return conditions
     }
     
-    static func removeCondition(conditionId: UUID, conditions: inout [ConditionTreeNodeViewModel]) {
+    static func removeCondition(conditionId: UUID, conditions: [ConditionTreeNodeViewModel]) -> [ConditionTreeNodeViewModel] {
+        
+        var conditions = conditions
         
         conditions.removeAll() { condition in condition.id == conditionId }
+        
+        return conditions
+    }
+    
+    static func moveConditionUp(conditionId: UUID, conditions: [ConditionTreeNodeViewModel]) -> [ConditionTreeNodeViewModel] {
+        
+        var conditions = conditions
+        
+        guard let srcIndex = conditions.firstIndex(where: { $0.id == conditionId }) else {
+            return conditions
+        }
+        
+        let dstIndex = (srcIndex - 1 + conditions.count) % conditions.count
+        
+        let condition = conditions[srcIndex]
+        conditions.remove(at: srcIndex)
+        conditions.insert(condition, at: dstIndex)
+        
+        return conditions
+    }
+    
+    static func moveConditionDown(conditionId: UUID, conditions: [ConditionTreeNodeViewModel]) -> [ConditionTreeNodeViewModel] {
+        var conditions = conditions
+        
+        guard let srcIndex = conditions.firstIndex(where: { $0.id == conditionId }) else {
+            return conditions
+        }
+        
+        let dstIndex = (srcIndex + 1) % conditions.count
+        
+        let condition = conditions[srcIndex]
+        conditions.remove(at: srcIndex)
+        conditions.insert(condition, at: dstIndex)
+        
+        return conditions
     }
 }
 
@@ -209,7 +282,7 @@ struct ConditionTreeHelper {
         isInverted: .constant(false),
         defaultResult: .constant(false),
         isDisabled: .constant(false),
-        rootConditions: [
+        rootConditions: .constant([
             ConditionTreeNodeViewModel(
                 fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
             ),
@@ -233,4 +306,5 @@ struct ConditionTreeHelper {
                 ]
             )
         ])
+    )
 }

@@ -20,6 +20,14 @@ struct GroupConditionView: View {
                 TextField("", text: $viewModel.name)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
+            
+            ConditionTreeView(
+                matchMode: $viewModel.matchMode,
+                isInverted: $viewModel.isInverted,
+                defaultResult: $viewModel.defaultResult,
+                isDisabled: $viewModel.isDisabled,
+                rootConditions: $viewModel.conditions
+            )
         }
     }
 }
@@ -27,6 +35,8 @@ struct GroupConditionView: View {
 class GroupConditionViewModel: ObservableObject {
     
     @Published var name: String
+    
+    @Published var matchMode: GroupMatchMode
     
     @Published var isInverted: Bool
     
@@ -36,8 +46,9 @@ class GroupConditionViewModel: ObservableObject {
     
     @Published var conditions: [ConditionTreeNodeViewModel]
     
-    init(name: String = "", isInverted: Bool = false, defaultResult: Bool = false, isDisabled: Bool = false, conditions: [ConditionTreeNodeViewModel] = []) {
+    init(name: String = "", matchMode: GroupMatchMode = .all, isInverted: Bool = false, defaultResult: Bool = false, isDisabled: Bool = false, conditions: [ConditionTreeNodeViewModel] = []) {
         self.name = name
+        self.matchMode = matchMode
         self.isInverted = isInverted
         self.defaultResult = defaultResult
         self.isDisabled = isDisabled
@@ -48,6 +59,8 @@ class GroupConditionViewModel: ObservableObject {
 #Preview {
     GroupConditionView(viewModel: GroupConditionViewModel(
             isInverted: true,
+            defaultResult: true,
+            isDisabled: true,
             conditions: [
                 ConditionTreeNodeViewModel(
                     fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])

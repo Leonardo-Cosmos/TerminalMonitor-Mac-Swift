@@ -86,7 +86,7 @@ struct ConditionListView: View {
                 
                 TextButtonToggle(
                     toggle: Binding(
-                        get: {groupCondition.matchMode == .all },
+                        get: { groupCondition.matchMode == .all },
                         set: { groupCondition.matchMode = ($0 ? .all : .any) }
                     ),
                     toggleOnTextKey: NSLocalizedString("∀", comment: ""),
