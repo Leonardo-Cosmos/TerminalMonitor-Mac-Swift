@@ -79,6 +79,8 @@ struct FieldConditionView: View {
 
 class FieldConditionViewModel: ObservableObject {
     
+    let id: UUID
+    
     @Published var fieldKey: String
     
     @Published var matchOperator: TextMatchOperator
@@ -91,32 +93,20 @@ class FieldConditionViewModel: ObservableObject {
     
     @Published var isDisabled: Bool
     
-    init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String, isInverted: Bool, defaultResult: Bool, isDisabled: Bool) {
+    init(id: UUID = UUID(),
+         fieldKey: String = "",
+         matchOperator: TextMatchOperator = .contains,
+         targetValue: String = "",
+         isInverted: Bool = false,
+         defaultResult: Bool = false,
+         isDisabled: Bool = false) {
+        self.id = id
         self.fieldKey = fieldKey
         self.matchOperator = matchOperator
         self.targetValue = targetValue
         self.isInverted = isInverted
         self.defaultResult = defaultResult
         self.isDisabled = isDisabled
-    }
-    
-    convenience init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String) {
-        self.init(
-            fieldKey: fieldKey,
-            matchOperator: matchOperator,
-            targetValue: targetValue,
-            isInverted: false,
-            defaultResult: false,
-            isDisabled: false,
-        )
-    }
-    
-    convenience init() {
-        self.init(
-            fieldKey: "",
-            matchOperator: .contains,
-            targetValue: "",
-        )
     }
     
     func to(_ fieldCondition: FieldCondition) {
@@ -130,6 +120,7 @@ class FieldConditionViewModel: ObservableObject {
     
     func to() -> FieldCondition {
         FieldCondition(
+            id: id,
             fieldKey: fieldKey,
             matchOperator: matchOperator,
             targetValue: targetValue,
@@ -141,6 +132,7 @@ class FieldConditionViewModel: ObservableObject {
     
     static func from(_ fieldCondition: FieldCondition) -> FieldConditionViewModel {
         FieldConditionViewModel(
+            id: fieldCondition.id,
             fieldKey: fieldCondition.fieldKey,
             matchOperator: fieldCondition.matchOperator,
             targetValue: fieldCondition.targetValue,

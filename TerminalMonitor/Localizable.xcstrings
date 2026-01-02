@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "{}" : {
+
+    },
     "/" : {
 
     },
@@ -37,6 +40,12 @@
       }
     },
     "Add Command" : {
+
+    },
+    "Add Field" : {
+
+    },
+    "Add Group" : {
 
     },
     "Alignment" : {
@@ -348,6 +357,12 @@
 
     },
     "Unique name of the command" : {
+
+    },
+    "Use multiple field condition" : {
+
+    },
+    "Use single field condition" : {
 
     },
     "Value" : {

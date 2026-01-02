@@ -22,11 +22,7 @@ struct GroupConditionView: View {
             }
             
             ConditionTreeView(
-                matchMode: $viewModel.matchMode,
-                isInverted: $viewModel.isInverted,
-                defaultResult: $viewModel.defaultResult,
-                isDisabled: $viewModel.isDisabled,
-                rootConditions: $viewModel.conditions
+                viewModel: viewModel.rootGroupConditionViewModel
             )
         }
     }
@@ -34,57 +30,81 @@ struct GroupConditionView: View {
 
 class GroupConditionViewModel: ObservableObject {
     
+    let id: UUID
+    
     @Published var name: String
     
-    @Published var matchMode: GroupMatchMode
+    @Published var rootGroupConditionViewModel: ConditionTreeNodeViewModel
     
-    @Published var isInverted: Bool
-    
-    @Published var defaultResult: Bool
-    
-    @Published var isDisabled: Bool
-    
-    @Published var conditions: [ConditionTreeNodeViewModel]
-    
-    init(name: String = "", matchMode: GroupMatchMode = .all, isInverted: Bool = false, defaultResult: Bool = false, isDisabled: Bool = false, conditions: [ConditionTreeNodeViewModel] = []) {
+    init(id: UUID = UUID(),
+         name: String = "",
+         rootGroupCondition: ConditionTreeNodeViewModel = ConditionTreeNodeViewModel(conditions: [])) {
+        self.id = id
         self.name = name
-        self.matchMode = matchMode
-        self.isInverted = isInverted
-        self.defaultResult = defaultResult
-        self.isDisabled = isDisabled
-        self.conditions = conditions
+        self.rootGroupConditionViewModel = rootGroupCondition
+    }
+    
+    func to(_ groupCondition: GroupCondition) {
+        let rootGroupCondtion = rootGroupConditionViewModel.to() as! GroupCondition
+        groupCondition.name = name
+        groupCondition.matchMode = rootGroupCondtion.matchMode
+        groupCondition.conditions = rootGroupCondtion.conditions
+        groupCondition.isInverted = rootGroupCondtion.isInverted
+        groupCondition.defaultResult = rootGroupCondtion.defaultResult
+        groupCondition.isDisabled = rootGroupCondtion.isDisabled
+    }
+    
+    func to() -> GroupCondition {
+        let rootGroupCondition = rootGroupConditionViewModel.to() as! GroupCondition
+        return GroupCondition(
+            id: id,
+            name: name,
+            matchMode: rootGroupCondition.matchMode,
+            conditions: rootGroupCondition.conditions,
+            isInverted: rootGroupCondition.isInverted,
+            defaultResult: rootGroupCondition.defaultResult,
+            isDisabled: rootGroupCondition.isDisabled,
+        )
+    }
+    
+    static func from(_ groupCondition: GroupCondition) -> GroupConditionViewModel {
+        GroupConditionViewModel(
+            id: groupCondition.id,
+            name: groupCondition.name ?? "",
+            rootGroupCondition: ConditionTreeNodeViewModel.from(groupCondition),
+        )
     }
 }
 
 #Preview {
-    GroupConditionView(viewModel: GroupConditionViewModel(
-            isInverted: true,
-            defaultResult: true,
-            isDisabled: true,
-            conditions: [
-                ConditionTreeNodeViewModel(
-                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-                ),
-                ConditionTreeNodeViewModel(
-                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-                ),
-                ConditionTreeNodeViewModel(
-                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-                ),
-                ConditionTreeNodeViewModel(
-                    conditions: [
-                        ConditionTreeNodeViewModel(
-                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-                        ),
-                        ConditionTreeNodeViewModel(
-                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-                        ),
-                        ConditionTreeNodeViewModel(
-                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-                        ),
-                    ]
-                )
-            ]
-        ))
-    .padding()
+    //    GroupConditionView(viewModel: GroupConditionViewModel(
+    //            isInverted: true,
+    //            defaultResult: true,
+    //            isDisabled: true,
+    //            conditions: [
+    //                ConditionTreeNodeViewModel(
+    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
+    //                ),
+    //                ConditionTreeNodeViewModel(
+    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
+    //                ),
+    //                ConditionTreeNodeViewModel(
+    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
+    //                ),
+    //                ConditionTreeNodeViewModel(
+    //                    conditions: [
+    //                        ConditionTreeNodeViewModel(
+    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
+    //                        ),
+    //                        ConditionTreeNodeViewModel(
+    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
+    //                        ),
+    //                        ConditionTreeNodeViewModel(
+    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
+    //                        ),
+    //                    ]
+    //                )
+    //            ]
+    //        ))
+    //    .padding()
 }
