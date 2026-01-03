@@ -7,31 +7,62 @@
 
 import Foundation
 
-class FieldConditionSetting: Codable {
+class FieldConditionSetting: ConditionSetting {
     
-    let id: String?
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case isInverted
+        case defaultResult
+        case isDisabled
+        case fieldKey
+        case matchOperator
+        case targetValue
+    }
     
-    var fieldKey: String
+    let fieldKey: String
     
-    var matchOperator: TextMatchOperator
+    let matchOperator: TextMatchOperator
     
-    var targetValue: String
-    
-    var isInverted: Bool
-    
-    var defaultResult: Bool
-    
-    var isDisabled: Bool
+    let targetValue: String
     
     init(id: String?, fieldKey: String, matchOperator: TextMatchOperator, targetValue: String,
          isInverted: Bool, defaultResult: Bool, isDisabled: Bool) {
-        self.id = id
         self.fieldKey = fieldKey
         self.matchOperator = matchOperator
         self.targetValue = targetValue
-        self.isInverted = isInverted
-        self.defaultResult = defaultResult
-        self.isDisabled = isDisabled
+        
+        super.init(
+            id: id,
+            name: nil,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
+        )
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.fieldKey = try container.decode(String.self, forKey: .fieldKey)
+        self.matchOperator = try container.decode(TextMatchOperator.self, forKey: .matchOperator)
+        self.targetValue = try container.decode(String.self, forKey: .targetValue)
+        
+        super.init(
+            id: try container.decodeIfPresent(String.self, forKey: .id),
+            name: try container.decodeIfPresent(String.self, forKey: .name),
+            isInverted: false,
+            defaultResult: false,
+            isDisabled: false,
+        )
+    }
+    
+    override func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(fieldKey, forKey: .fieldKey)
+        try container.encode(matchOperator, forKey: .matchOperator)
+        try container.encode(targetValue, forKey: .targetValue)
+        
+        try super.encode(to: encoder)
     }
 }
 
