@@ -18,32 +18,30 @@ struct ConditionDetailView: View {
     var body: some View {
         VStack {
             Picker("", selection: $viewModel.conditionMode) {
-                VStack {
-                    HStack {
-                        Text("Use single field condition")
-                        Spacer()
-                    }
-                    
-                    FieldConditionView(viewModel: viewModel.fieldCondition)
-                        .disabled(viewModel.conditionMode != .single)
+                HStack {
+                    Text("Use single field condition")
+                    Spacer()
                 }
                 .tag(ConditionMode.single)
-                .padding(.vertical)
-                
-                
-                VStack {
-                    HStack {
-                        Text("Use multiple field condition")
-                        Spacer()
-                    }
-                    
-                    GroupConditionView(viewModel: viewModel.groupCondition)
-                        .disabled(viewModel.conditionMode != .multiple)
-                }
-                .tag(ConditionMode.multiple)
-                
             }
             .pickerStyle(.radioGroup)
+            
+            FieldConditionView(viewModel: viewModel.fieldCondition)
+                .disabled(viewModel.conditionMode != .single)
+                .padding()
+            
+            Picker("", selection: $viewModel.conditionMode) {
+                HStack {
+                    Text("Use multiple field condition")
+                    Spacer()
+                }
+                .tag(ConditionMode.multiple)
+            }
+            .pickerStyle(.radioGroup)
+            
+            GroupConditionView(viewModel: viewModel.groupCondition)
+                .disabled(viewModel.conditionMode != .multiple)
+                .padding()
             
             HStack {
                 Button("Cancel") {
@@ -57,8 +55,8 @@ struct ConditionDetailView: View {
                 }
                 .keyboardShortcut(.defaultAction)
             }
-            .padding()
         }
+        .padding(.vertical)
     }
 }
 
@@ -94,7 +92,7 @@ class ConditionDetailWindowController {
     
     static func openWindow(for condition: Binding<Condition>, onSave: ((Condition) -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 200)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 400)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],
