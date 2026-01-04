@@ -6,8 +6,14 @@
 //
 
 import SwiftUI
+import os
 
 struct ConditionTreeView: View {
+    
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: Self.self)
+    )
     
     @ObservedObject var viewModel: ConditionTreeNodeViewModel
     
@@ -105,6 +111,14 @@ struct ConditionTreeView: View {
                 }
             }
         }
+        .onAppear {
+            initNodeIdDict(condition: viewModel)
+        }
+    }
+    
+    private func initNodeIdDict(condition: ConditionTreeNodeViewModel) {
+        nodeIdDict[condition.id] = condition
+        condition.conditions?.forEach { initNodeIdDict(condition: $0) }
     }
     
     private func addFieldCondition() {
@@ -125,14 +139,17 @@ struct ConditionTreeView: View {
         
         var selectedCondition: ConditionTreeNodeViewModel? = nil
         if let selectedId = selectedId {
+            Self.logger.debug("Selected node id: \(selectedId)")
             selectedCondition = nodeIdDict[selectedId]
         }
         
         if let selectedCondition = selectedCondition {
             // There is a selected node
+            Self.logger.debug("Selected node: \(selectedCondition.id)")
             
             if selectedCondition.conditions != nil {
                 // The selected node is group condition
+                Self.logger.debug("Selected node is a group condition")
                 ConditionTreeHelper.addCondition(
                     condition: newCondition,
                     parentCondition: selectedCondition,
@@ -140,6 +157,7 @@ struct ConditionTreeView: View {
                 )
             } else {
                 // The selected node is field condition
+                Self.logger.debug("Selected node is a field condition")
                 let parentCondition = selectedCondition.parent!
                 ConditionTreeHelper.addCondition(
                     condition: newCondition,
@@ -149,6 +167,7 @@ struct ConditionTreeView: View {
             }
         } else {
             // There is not a selected node
+            Self.logger.debug("No selected node")
             ConditionTreeHelper.addCondition(
                 condition: newCondition,
                 parentCondition: viewModel,
