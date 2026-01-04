@@ -77,34 +77,8 @@ class GroupConditionViewModel: ObservableObject {
 }
 
 #Preview {
-    //    GroupConditionView(viewModel: GroupConditionViewModel(
-    //            isInverted: true,
-    //            defaultResult: true,
-    //            isDisabled: true,
-    //            conditions: [
-    //                ConditionTreeNodeViewModel(
-    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-    //                ),
-    //                ConditionTreeNodeViewModel(
-    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-    //                ),
-    //                ConditionTreeNodeViewModel(
-    //                    fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-    //                ),
-    //                ConditionTreeNodeViewModel(
-    //                    conditions: [
-    //                        ConditionTreeNodeViewModel(
-    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-    //                        ),
-    //                        ConditionTreeNodeViewModel(
-    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-    //                        ),
-    //                        ConditionTreeNodeViewModel(
-    //                            fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-    //                        ),
-    //                    ]
-    //                )
-    //            ]
-    //        ))
-    //    .padding()
+    GroupConditionView(
+        viewModel: GroupConditionViewModel.from(previewGroupCondition())
+    )
+    .padding()
 }

@@ -103,11 +103,21 @@ struct ConditionTreeView: View {
                 .disabled(selectedId == nil)
             }
             
-            List(viewModel.conditions!, children: \.conditions, selection: $selectedId) { condition in
-                if let fieldCondition = condition.fieldCondition {
-                    FieldConditionView(viewModel: fieldCondition)
-                } else {
-                    ConditionTreeNodeView(viewModel: condition)
+            if let conditions = viewModel.conditions {
+                List(selection: $selectedId) {
+                    ForEach(viewModel.conditions!) { condition in
+                        ConditionTreeNodeView(viewModel: condition)
+                    }
+                }
+                .onChange(of: selectedId) {
+                    if let selectedId = selectedId {
+                        Self.logger.debug("Selected node id: \(selectedId)")
+                        if let selectedCondition = nodeIdDict[selectedId] {
+                            Self.logger.debug("Selected node is \(selectedCondition.conditions != nil ? "group" : "field")")
+                        }
+                    } else {
+                        Self.logger.debug("No selected id")
+                    }
                 }
             }
         }
@@ -237,6 +247,8 @@ class ConditionTreeNodeViewModel: ObservableObject, Identifiable {
     
     var parent: ConditionTreeNodeViewModel?
     
+    @Published var isExpanded: Bool
+    
     @Published var isInverted: Bool
     
     @Published var defaultResult: Bool
@@ -262,6 +274,7 @@ class ConditionTreeNodeViewModel: ObservableObject, Identifiable {
     }
     
     init(id: UUID = UUID(),
+         isExpaned: Bool = true,
          parent: ConditionTreeNodeViewModel? = nil,
          isInverted: Bool = false,
          defaultResult: Bool = false,
@@ -270,6 +283,7 @@ class ConditionTreeNodeViewModel: ObservableObject, Identifiable {
          conditions: [ConditionTreeNodeViewModel]? = nil,
          fieldCondition: FieldConditionViewModel? = nil) {
         self.id = id
+        self.isExpanded = isExpaned
         self.parent = parent
         self.isInverted = isInverted
         self.defaultResult = defaultResult
@@ -391,34 +405,7 @@ struct ConditionTreeHelper {
 }
 
 #Preview {
-//    ConditionTreeView(
-//        matchMode: .constant(.all),
-//        isInverted: .constant(false),
-//        defaultResult: .constant(false),
-//        isDisabled: .constant(false),
-//        rootConditions: .constant([
-//            ConditionTreeNodeViewModel(
-//                fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-//            ),
-//            ConditionTreeNodeViewModel(
-//                fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-//            ),
-//            ConditionTreeNodeViewModel(
-//                fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-//            ),
-//            ConditionTreeNodeViewModel(
-//                conditions: [
-//                    ConditionTreeNodeViewModel(
-//                        fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[0])
-//                    ),
-//                    ConditionTreeNodeViewModel(
-//                        fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[1])
-//                    ),
-//                    ConditionTreeNodeViewModel(
-//                        fieldCondition: FieldConditionViewModel.from(previewFieldConditions()[2])
-//                    ),
-//                ]
-//            )
-//        ])
-//    )
+    ConditionTreeView(
+        viewModel: ConditionTreeNodeViewModel.from(previewGroupCondition())
+    )
 }
