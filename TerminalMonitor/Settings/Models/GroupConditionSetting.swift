@@ -45,9 +45,9 @@ class GroupConditionSetting: ConditionSetting {
         super.init(
             id: try container.decodeIfPresent(String.self, forKey: .id),
             name: try container.decodeIfPresent(String.self, forKey: .name),
-            isInverted: false,
-            defaultResult: false,
-            isDisabled: false,
+            isInverted: try container.decode(Bool.self, forKey: .isInverted),
+            defaultResult: try container.decode(Bool.self, forKey: .defaultResult),
+            isDisabled: try container.decode(Bool.self, forKey: .isDisabled),
         )
     }
     
