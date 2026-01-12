@@ -17,7 +17,9 @@ struct TextStyleConditionView: View {
             GroupBox(label: EmptyView()) {
                 HStack {
                     Button("Edit", systemImage: "pencil") {
-                        ConditionDetailWindowController.openWindow(for: $viewModel.condition)
+                        ConditionDetailWindowController.openWindow(for: $viewModel.condition) { condition in
+                            viewModel.condition = condition
+                        }
                     }
                     .labelStyle(.iconOnly)
                     
@@ -117,13 +119,13 @@ class TextStyleConditionViewModel: Identifiable, ObservableObject {
     
     func to(_ textStyleCondition: TextStyleCondition) {
         style.to(textStyleCondition.style)
-        textStyleCondition.condition = condition as! FieldCondition
+        textStyleCondition.condition = condition
     }
     
     func to() -> TextStyleCondition {
         TextStyleCondition(
             style: style.to(),
-            condition: condition as! FieldCondition
+            condition: condition,
         )
     }
     

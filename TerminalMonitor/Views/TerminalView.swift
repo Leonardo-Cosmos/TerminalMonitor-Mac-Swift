@@ -522,7 +522,7 @@ struct TerminalView: View {
     
     private func findMatchedStyleCondition(terminalLine: TerminalLine, styleConditions: [TextStyleCondition], defaultStyle: TextStyleConfig) -> TextStyleConfig {
         
-        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, fieldCondition: $0.condition) })
+        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, matchCondition: $0.condition) })
         return matchedStyleCondition?.style ?? defaultStyle
     }
 }

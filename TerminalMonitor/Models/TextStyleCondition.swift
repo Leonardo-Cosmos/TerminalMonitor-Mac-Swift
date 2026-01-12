@@ -13,15 +13,15 @@ class TextStyleCondition: Identifiable, NSCopying {
     
     var style: TextStyleConfig
     
-    var condition: FieldCondition
+    var condition: Condition
     
-    init(id: UUID, style: TextStyleConfig, condition: FieldCondition) {
+    init(id: UUID, style: TextStyleConfig, condition: Condition) {
         self.id = id
         self.style = style
         self.condition = condition
     }
     
-    convenience init(style: TextStyleConfig, condition: FieldCondition) {
+    convenience init(style: TextStyleConfig, condition: Condition) {
         self.init(
             id: UUID(),
             style: style,
@@ -32,7 +32,7 @@ class TextStyleCondition: Identifiable, NSCopying {
     func copy(with zone: NSZone? = nil) -> Any {
         TextStyleCondition(
             style: self.style.copy() as! TextStyleConfig,
-            condition: self.condition.copy() as! FieldCondition
+            condition: self.condition.copy() as! Condition
         )
     }
 }
