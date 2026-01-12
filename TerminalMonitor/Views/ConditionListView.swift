@@ -44,7 +44,11 @@ struct ConditionListView: View {
                     )
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
-                            ConditionListHelper.openConditionDetailWindow(condition: condition)
+                            editCondtion(condition)
+                        }
+                        
+                        Button("Remove", systemImage: "minus") {
+                            removeCondtion(condition)
                         }
                     }
                 }
@@ -86,7 +90,7 @@ struct ConditionListView: View {
                 
                 TextButtonToggle(
                     toggle: Binding(
-                        get: {groupCondition.matchMode == .all },
+                        get: { groupCondition.matchMode == .all },
                         set: { groupCondition.matchMode = ($0 ? .all : .any) }
                     ),
                     toggleOnTextKey: NSLocalizedString("∀", comment: ""),
@@ -222,38 +226,44 @@ struct ConditionListView: View {
         }
     }
     
+    private func removeCondtion(_ condition: Condition) {
+        ConditionListHelper.removeCondition(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
+    private func editCondtion(_ condition: Condition) {
+        ConditionListHelper.openConditionDetailWindow(condition: condition) { savedCondition in
+            ConditionListHelper.replaceCondtion(condition: savedCondition, conditions: &groupCondition.conditions, replacing: condition.id)
+        }
+    }
+    
+    private func moveCondtionLeft(_ condition: Condition) {
+        ConditionListHelper.moveConditionLeft(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
+    private func moveCondtionRight(_ condition: Condition) {
+        ConditionListHelper.moveConditionRight(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
     private func addCondition() {
         ConditionListHelper.openConditionDetailWindow { condition in
-            ConditionListHelper.addCondition(condition: condition, conditions: &groupCondition.conditions, replacing: nil)
+            ConditionListHelper.addCondition(condition: condition, conditions: &groupCondition.conditions, insertAt: selectedItem)
         }
     }
     
     private func removeSelectedCondition() {
-        forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.removeCondition(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(action: removeCondtion(_:))
     }
     
     private func editSelectedCondition() {
-        forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.openConditionDetailWindow(condition: selectedCondition) { condition in
-                if let index = groupCondition.conditions.firstIndex(where: { $0.id == selectedCondition.id }) {
-                    groupCondition.conditions[index] = condition
-                }
-            }
-        }
+        forEachSelectedCondition(action: editCondtion(_:))
     }
     
     private func moveSelectedConditionsLeft() {
-        forEachSelectedCondition(byOrder: true, reverseOrder: false) { selectedCondition in
-            ConditionListHelper.moveConditionLeft(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(byOrder: true, reverseOrder: false, action: moveCondtionLeft(_:))
     }
     
     private func moveSelectedConditionsRight() {
-        forEachSelectedCondition(byOrder: true, reverseOrder: true) { selectedCondition in
-            ConditionListHelper.moveConditionRight(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(byOrder: true, reverseOrder: true, action: moveCondtionRight(_:))
     }
 }
 
@@ -269,12 +279,19 @@ struct ConditionListHelper {
         ), onSave: onSave)
     }
     
-    static func addCondition(condition: Condition, conditions: inout [Condition], replacing conditionId: UUID?) {
+    static func addCondition(condition: Condition, conditions: inout [Condition], insertAt conditionId: UUID?) {
         
         if let conditionId = conditionId, let index = conditions.firstIndex(where: { $0.id == conditionId }) {
             conditions.insert(condition, at: index)
         } else {
             conditions.append(condition)
+        }
+    }
+    
+    static func replaceCondtion(condition: Condition, conditions: inout [Condition], replacing conditionId: UUID) {
+        
+        if let index = conditions.firstIndex(where: { $0.id == conditionId }) {
+            conditions[index] = condition
         }
     }
     

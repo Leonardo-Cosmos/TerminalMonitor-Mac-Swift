@@ -74,11 +74,12 @@ struct FieldConditionView: View {
                 )
             }
         }
-        .padding()
     }
 }
 
 class FieldConditionViewModel: ObservableObject {
+    
+    let id: UUID
     
     @Published var fieldKey: String
     
@@ -92,7 +93,14 @@ class FieldConditionViewModel: ObservableObject {
     
     @Published var isDisabled: Bool
     
-    init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String, isInverted: Bool, defaultResult: Bool, isDisabled: Bool) {
+    init(id: UUID = UUID(),
+         fieldKey: String = "",
+         matchOperator: TextMatchOperator = .contains,
+         targetValue: String = "",
+         isInverted: Bool = false,
+         defaultResult: Bool = false,
+         isDisabled: Bool = false) {
+        self.id = id
         self.fieldKey = fieldKey
         self.matchOperator = matchOperator
         self.targetValue = targetValue
@@ -101,32 +109,42 @@ class FieldConditionViewModel: ObservableObject {
         self.isDisabled = isDisabled
     }
     
-    convenience init(fieldKey: String, matchOperator: TextMatchOperator, targetValue: String) {
-        self.init(
+    func to(_ fieldCondition: FieldCondition) {
+        fieldCondition.fieldKey = fieldKey
+        fieldCondition.matchOperator = matchOperator
+        fieldCondition.targetValue = targetValue
+        fieldCondition.isInverted = isInverted
+        fieldCondition.defaultResult = defaultResult
+        fieldCondition.isDisabled = isDisabled
+    }
+    
+    func to() -> FieldCondition {
+        FieldCondition(
+            id: id,
             fieldKey: fieldKey,
             matchOperator: matchOperator,
             targetValue: targetValue,
-            isInverted: false,
-            defaultResult: false,
-            isDisabled: false,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
         )
     }
     
-    convenience init() {
-        self.init(
-            fieldKey: "",
-            matchOperator: .contains,
-            targetValue: "",
+    static func from(_ fieldCondition: FieldCondition) -> FieldConditionViewModel {
+        FieldConditionViewModel(
+            id: fieldCondition.id,
+            fieldKey: fieldCondition.fieldKey,
+            matchOperator: fieldCondition.matchOperator,
+            targetValue: fieldCondition.targetValue,
+            isInverted: fieldCondition.isInverted,
+            defaultResult: fieldCondition.defaultResult,
+            isDisabled: fieldCondition.isDisabled,
         )
     }
 }
 
 #Preview {
     FieldConditionView(
-        viewModel: FieldConditionViewModel(
-            fieldKey: "key",
-            matchOperator: .contains,
-            targetValue: "value"
-        )
+        viewModel: FieldConditionViewModel.from(previewFieldConditions()[0])
     )
 }

@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "{}" : {
+
+    },
     "/" : {
 
     },
@@ -37,6 +40,12 @@
       }
     },
     "Add Command" : {
+
+    },
+    "Add Field" : {
+
+    },
+    "Add Group" : {
 
     },
     "Alignment" : {
@@ -248,17 +257,22 @@
     "Middle" : {
 
     },
+    "Move Down" : {
+
+    },
     "Move Left" : {
 
     },
     "Move Right" : {
 
     },
+    "Move Up" : {
+
+    },
     "Multiple Selection" : {
 
     },
     "Name" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -343,6 +357,12 @@
 
     },
     "Unique name of the command" : {
+
+    },
+    "Use multiple field condition" : {
+
+    },
+    "Use single field condition" : {
 
     },
     "Value" : {
