@@ -224,6 +224,9 @@
     "Hide this column" : {
 
     },
+    "Inherit default" : {
+
+    },
     "It has been started already" : {
       "comment" : "Error when start an execution that has been started already"
     },

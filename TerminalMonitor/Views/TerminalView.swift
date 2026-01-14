@@ -36,6 +36,13 @@ struct TerminalView: View {
     @State private var lineViewModels: [TerminalLineViewModel] = []
     
     /**
+     A dictionary containing style config and its original ID.
+     If a style inherites default, the shown style is the a new style merging the original style to default style.
+     If a style doesn't inherite default, the shown style is the original style.
+     */
+    @State private var shownStyleDict: [UUID: TextStyleConfig] = [:]
+    
+    /**
      A dictionary containing matching result of each line.
      */
     @State private var lineFilterDict: [UUID: Bool] = [:]
@@ -175,6 +182,7 @@ struct TerminalView: View {
             visibleFields = TerminalViewHelper.updateFieldDisplayConfigs(
                 from: terminalConfig.visibleFields,
                 to: visibleFields)
+            initMergedStyleDict()
             filterCondition = terminalConfig.filterCondition.copy() as! GroupCondition
             findCondition = terminalConfig.findCondition.copy() as! GroupCondition
             appendMatchedTerminalLines()
@@ -457,7 +465,23 @@ struct TerminalView: View {
         
         lineViewModels.removeAll()
         
+        initMergedStyleDict()
+        
         appendMatchedTerminalLines()
+    }
+    
+    private func initMergedStyleDict() {
+        shownStyleDict.removeAll()
+        for visibleField in visibleFields {
+            for textStyleCondition in visibleField.conditions {
+                let style = textStyleCondition.style
+                if textStyleCondition.inheritDefault {
+                    shownStyleDict[style.id] = textStyleCondition.style.merge(to: visibleField.style)
+                } else {
+                    shownStyleDict[style.id] = style
+                }
+            }
+        }
     }
     
     private func appendMatchedTerminalLines() {
@@ -525,7 +549,11 @@ struct TerminalView: View {
     private func findMatchedStyleCondition(terminalLine: TerminalLine, styleConditions: [TextStyleCondition], defaultStyle: TextStyleConfig) -> TextStyleConfig {
         
         let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, matchCondition: $0.condition) })
-        return matchedStyleCondition?.style ?? defaultStyle
+        if let matchedStyleCondition = matchedStyleCondition {
+            return shownStyleDict[matchedStyleCondition.style.id]!
+        } else {
+            return defaultStyle
+        }
     }
 }
 

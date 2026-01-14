@@ -56,6 +56,31 @@ class TextStyleConfig: Identifiable, NSCopying {
         )
     }
     
+    func merge(to baseStyle: TextStyleConfig) -> TextStyleConfig {
+        let mergedStyle = baseStyle.copy() as! TextStyleConfig
+        
+        if let foreground = self.foreground {
+            mergedStyle.foreground = (foreground.copy() as! TextColorConfig)
+        }
+        if let background = self.background {
+            mergedStyle.background = (background.copy() as! TextColorConfig)
+        }
+        if let cellBackground = self.cellBackground {
+            mergedStyle.cellBackground = (cellBackground.copy() as! TextColorConfig)
+        }
+        if let alignment = self.alignment {
+            mergedStyle.alignment = alignment
+        }
+        if let lineLimit = self.lineLimit {
+            mergedStyle.lineLimit = lineLimit
+        }
+        if let truncationMode = self.truncationMode {
+            mergedStyle.truncationMode = truncationMode
+        }
+        
+        return mergedStyle
+    }
+    
     static func `default`() -> TextStyleConfig {
         TextStyleConfig(
             foreground: nil,

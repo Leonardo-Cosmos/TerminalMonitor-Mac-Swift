@@ -13,26 +13,31 @@ class TextStyleCondition: Identifiable, NSCopying {
     
     var style: TextStyleConfig
     
+    var inheritDefault: Bool
+    
     var condition: Condition
     
-    init(id: UUID, style: TextStyleConfig, condition: Condition) {
+    init(id: UUID, style: TextStyleConfig, inheritDefault: Bool, condition: Condition) {
         self.id = id
         self.style = style
+        self.inheritDefault = inheritDefault
         self.condition = condition
     }
     
-    convenience init(style: TextStyleConfig, condition: Condition) {
+    convenience init(style: TextStyleConfig, inheritDefault: Bool, condition: Condition) {
         self.init(
             id: UUID(),
             style: style,
-            condition: condition
+            inheritDefault: inheritDefault,
+            condition: condition,
         )
     }
     
     func copy(with zone: NSZone? = nil) -> Any {
         TextStyleCondition(
             style: self.style.copy() as! TextStyleConfig,
-            condition: self.condition.copy() as! Condition
+            inheritDefault: self.inheritDefault,
+            condition: self.condition.copy() as! Condition,
         )
     }
 }

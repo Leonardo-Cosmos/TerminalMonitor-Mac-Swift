@@ -151,8 +151,8 @@ struct TextStyleConditionListHelper {
 
 #Preview {
     TextStyleConditionListView(styleConditions: Binding.constant([
-        TextStyleConditionViewModel(style: TextStyleViewModel(), condition: previewFieldConditions()[0]),
-        TextStyleConditionViewModel(style: TextStyleViewModel(), condition: previewFieldConditions()[1]),
-        TextStyleConditionViewModel(style: TextStyleViewModel(), condition: previewFieldConditions()[2]),
+        TextStyleConditionViewModel(style: TextStyleViewModel(), inheritDefault: false, condition: previewFieldConditions()[0]),
+        TextStyleConditionViewModel(style: TextStyleViewModel(), inheritDefault: false, condition: previewFieldConditions()[1]),
+        TextStyleConditionViewModel(style: TextStyleViewModel(), inheritDefault: false, condition: previewFieldConditions()[2]),
     ]))
 }
