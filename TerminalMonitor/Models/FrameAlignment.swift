@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum FrameAlignment: CaseIterable, Identifiable, Codable {
+enum FrameAlignment: String, Codable, CaseIterable, Identifiable {
     case center
     case leading
     case trailing

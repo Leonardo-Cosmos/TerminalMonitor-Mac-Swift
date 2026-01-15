@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TextColorMode: CaseIterable, Identifiable, Codable {
+enum TextColorMode: String, Codable, CaseIterable, Identifiable {
     case fixed
     
     var id: Self {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TextMatchOperator: CaseIterable, Identifiable, Codable {
+enum TextMatchOperator: String, Codable, CaseIterable, Identifiable {
     case none
     case equals
     case contains

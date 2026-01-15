@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum TextTruncationMode: CaseIterable, Identifiable, Codable {
+enum TextTruncationMode: String, Codable, CaseIterable, Identifiable {
     case head
     case tail
     case middle
