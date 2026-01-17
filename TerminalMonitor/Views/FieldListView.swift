@@ -18,7 +18,7 @@ struct FieldListView: View {
     
     private static let unselectedButtonBackground = Color(nsColor: NSColor.controlColor)
     
-    @State var visibleFields: [FieldDisplayConfig] = []
+    @Binding var visibleFields: [FieldDisplayConfig]
     
     @State private var isExpanded = true
     
@@ -34,24 +34,12 @@ struct FieldListView: View {
         DisclosureGroup(isExpanded: $isExpanded, content: {
             HFlow {
                 ForEach(visibleFields) { fieldDisplayConfig in
-                    Button(action: { onFieldClicked(fieldId: fieldDisplayConfig.id) }) {
-                        HStack {
-                            Text(fieldDisplayConfig.fieldDescription)
-                                .lineLimit(1)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                        }
-                        .foregroundStyle(buttonForeground(fieldDisplayConfig.id))
-                        .background(buttonBackground(fieldDisplayConfig.id))
-                        .backgroundStyle(buttonBackground(fieldDisplayConfig.id))
-                        .opacity(fieldDisplayConfig.hidden ? 0.5 : 1.0)
-                        .cornerRadius(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    FieldListItemView(
+                        fieldDisplayConfig: fieldDisplayConfig,
+                        onFieldClicked: { onFieldClicked(fieldId: $0) },
+                        buttonForeground: buttonForeground,
+                        buttonBackground: buttonBackground,
+                    )
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
                             FieldListHelper.openFieldConfigWindow(fieldConfig: fieldDisplayConfig)
@@ -265,5 +253,8 @@ struct FieldListHelper {
 }
 
 #Preview {
-    FieldListView(visibleFields: previewFieldDisplayConfigs(), onFieldsApplied: { visibleFields in })
+    FieldListView(
+        visibleFields: Binding.constant(previewFieldDisplayConfigs()),
+        onFieldsApplied: { visibleFields in }
+    )
 }

@@ -36,67 +36,19 @@ struct ConditionListView: View {
         DisclosureGroup(isExpanded: $isExpanded, content: {
             HFlow {
                 ForEach(groupCondition.conditions) { condition in
-                    Button(action: { onConditionClicked(conditionId: condition.id)}) {
-                        HStack {
-                            Text(condition.conditionDescription)
-                                .lineLimit(1)
-                            
-                            HStack(spacing: 4) {
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.isInverted },
-                                        set: { condition.isInverted = $0 }
-                                    ),
-                                    toggleOnSystemImage: "minus.circle.fill",
-                                    toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: NSLocalizedString("Matching is Inverted", comment: ""),
-                                    toggleOffSystemImage: "largecircle.fill.circle",
-                                    toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: NSLocalizedString("Matching is not Inverted", comment: "")
-                                )
-                                
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.defaultResult },
-                                        set: { condition.defaultResult = $0 }
-                                    ),
-                                    toggleOnSystemImage: "star.fill",
-                                    toggleOnSystemColor: .yellow,
-                                    toggleOnHelpTextKey: NSLocalizedString("Default to True when the Field is not Found", comment: ""),
-                                    toggleOffSystemImage: "star",
-                                    toggleOffSystemColor: .yellow,
-                                    toggleOffHelpTextKey: NSLocalizedString("Default to False when the Field is not Found", comment: "")
-                                )
-                                
-                                SymbolButtonToggle(
-                                    toggle: Binding(
-                                        get: { condition.isDisabled },
-                                        set: { condition.isDisabled = $0 }
-                                    ),
-                                    toggleOnSystemImage: "pause.circle",
-                                    toggleOnSystemColor: .red,
-                                    toggleOnHelpTextKey: NSLocalizedString("This Condition is Disabled", comment: ""),
-                                    toggleOffSystemImage: "dot.circle",
-                                    toggleOffSystemColor: .green,
-                                    toggleOffHelpTextKey: NSLocalizedString("This Condition is Enabled", comment: "")
-                                )
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .foregroundStyle(buttonForeground(condition.id))
-                        .background(buttonBackground(condition.id))
-                        .backgroundStyle(buttonBackground(condition.id))
-                        .cornerRadius(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color(nsColor: NSColor.lightGray), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    ConditionListItemView(
+                        condition: condition,
+                        onConditionClicked: { onConditionClicked(conditionId: $0) },
+                        buttonForeground: buttonForeground,
+                        buttonBackground: buttonBackground,
+                    )
                     .contextMenu {
                         Button("Edit", systemImage: "pencil") {
-                            ConditionListHelper.openConditionDetailWindow(condition: condition)
+                            editCondtion(condition)
+                        }
+                        
+                        Button("Remove", systemImage: "minus") {
+                            removeCondtion(condition)
                         }
                     }
                 }
@@ -138,7 +90,7 @@ struct ConditionListView: View {
                 
                 TextButtonToggle(
                     toggle: Binding(
-                        get: {groupCondition.matchMode == .all },
+                        get: { groupCondition.matchMode == .all },
                         set: { groupCondition.matchMode = ($0 ? .all : .any) }
                     ),
                     toggleOnTextKey: NSLocalizedString("∀", comment: ""),
@@ -274,38 +226,44 @@ struct ConditionListView: View {
         }
     }
     
+    private func removeCondtion(_ condition: Condition) {
+        ConditionListHelper.removeCondition(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
+    private func editCondtion(_ condition: Condition) {
+        ConditionListHelper.openConditionDetailWindow(condition: condition) { savedCondition in
+            ConditionListHelper.replaceCondtion(condition: savedCondition, conditions: &groupCondition.conditions, replacing: condition.id)
+        }
+    }
+    
+    private func moveCondtionLeft(_ condition: Condition) {
+        ConditionListHelper.moveConditionLeft(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
+    private func moveCondtionRight(_ condition: Condition) {
+        ConditionListHelper.moveConditionRight(conditionId: condition.id, conditions: &groupCondition.conditions)
+    }
+    
     private func addCondition() {
         ConditionListHelper.openConditionDetailWindow { condition in
-            ConditionListHelper.addCondition(condition: condition, conditions: &groupCondition.conditions, replacing: nil)
+            ConditionListHelper.addCondition(condition: condition, conditions: &groupCondition.conditions, insertAt: selectedItem)
         }
     }
     
     private func removeSelectedCondition() {
-        forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.removeCondition(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(action: removeCondtion(_:))
     }
     
     private func editSelectedCondition() {
-        forEachSelectedCondition { selectedCondition in
-            ConditionListHelper.openConditionDetailWindow(condition: selectedCondition) { condition in
-                if let index = groupCondition.conditions.firstIndex(where: { $0.id == selectedCondition.id }) {
-                    groupCondition.conditions[index] = condition
-                }
-            }
-        }
+        forEachSelectedCondition(action: editCondtion(_:))
     }
     
     private func moveSelectedConditionsLeft() {
-        forEachSelectedCondition(byOrder: true, reverseOrder: false) { selectedCondition in
-            ConditionListHelper.moveConditionLeft(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(byOrder: true, reverseOrder: false, action: moveCondtionLeft(_:))
     }
     
     private func moveSelectedConditionsRight() {
-        forEachSelectedCondition(byOrder: true, reverseOrder: true) { selectedCondition in
-            ConditionListHelper.moveConditionRight(conditionId: selectedCondition.id, conditions: &groupCondition.conditions)
-        }
+        forEachSelectedCondition(byOrder: true, reverseOrder: true, action: moveCondtionRight(_:))
     }
 }
 
@@ -321,12 +279,19 @@ struct ConditionListHelper {
         ), onSave: onSave)
     }
     
-    static func addCondition(condition: Condition, conditions: inout [Condition], replacing conditionId: UUID?) {
+    static func addCondition(condition: Condition, conditions: inout [Condition], insertAt conditionId: UUID?) {
         
         if let conditionId = conditionId, let index = conditions.firstIndex(where: { $0.id == conditionId }) {
             conditions.insert(condition, at: index)
         } else {
             conditions.append(condition)
+        }
+    }
+    
+    static func replaceCondtion(condition: Condition, conditions: inout [Condition], replacing conditionId: UUID) {
+        
+        if let index = conditions.firstIndex(where: { $0.id == conditionId }) {
+            conditions[index] = condition
         }
     }
     

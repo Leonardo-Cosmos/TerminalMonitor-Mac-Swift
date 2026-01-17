@@ -9,16 +9,34 @@ import Foundation
 
 class TextStyleConditionSetting: Codable {
     
+    enum CodingKeys: String, CodingKey {
+        case id
+        case style
+        case inheritDefault
+        case condition
+    }
+    
     let id: String?
     
     let style: TextStyleConfigSetting
     
-    let condition: FieldConditionSetting
+    let inheritDefault: Bool?
     
-    init(id: String?, style: TextStyleConfigSetting, condition: FieldConditionSetting) {
+    let condition: ConditionSetting
+    
+    init(id: String?, style: TextStyleConfigSetting, inheritDefault: Bool?, condition: ConditionSetting) {
         self.id = id
         self.style = style
+        self.inheritDefault = inheritDefault
         self.condition = condition
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id)
+        self.style = try container.decode(TextStyleConfigSetting.self, forKey: .style)
+        self.inheritDefault = try container.decodeIfPresent(Bool.self, forKey: .inheritDefault)
+        self.condition = try container.decode(ConditionSetting.self, forKey: .condition, using: ConditionSetting.decode(from:))
     }
 }
 
@@ -33,7 +51,8 @@ class TextStyleConditionSettingHelper {
         return TextStyleConditionSetting(
             id: value.id.uuidString,
             style: TextStyleConfigSettingHelper.save(value.style)!,
-            condition: FieldConditionSettingHelper.save(value.condition)!,
+            inheritDefault: value.inheritDefault,
+            condition: ConditionSettingHelper.save(value.condition)!,
         )
     }
     
@@ -46,7 +65,8 @@ class TextStyleConditionSettingHelper {
         return TextStyleCondition(
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             style: TextStyleConfigSettingHelper.load(setting.style)!,
-            condition: FieldConditionSettingHelper.load(setting.condition)!,
+            inheritDefault: setting.inheritDefault ?? false,
+            condition: ConditionSettingHelper.load(setting.condition)!,
         )
     }
 }

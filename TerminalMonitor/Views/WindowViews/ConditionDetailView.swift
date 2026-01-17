@@ -13,11 +13,35 @@ struct ConditionDetailView: View {
     
     @ObservedObject var viewModel: ConditionDetailViewModel
     
-    var onSave: (() -> Void)?
+    var onSave: ((ConditionDetailViewModel) -> Void)?
     
     var body: some View {
         VStack {
+            Picker("", selection: $viewModel.conditionMode) {
+                HStack {
+                    Text("Use single field condition")
+                    Spacer()
+                }
+                .tag(ConditionMode.single)
+            }
+            .pickerStyle(.radioGroup)
+            
             FieldConditionView(viewModel: viewModel.fieldCondition)
+                .disabled(viewModel.conditionMode != .single)
+                .padding()
+            
+            Picker("", selection: $viewModel.conditionMode) {
+                HStack {
+                    Text("Use multiple field condition")
+                    Spacer()
+                }
+                .tag(ConditionMode.multiple)
+            }
+            .pickerStyle(.radioGroup)
+            
+            GroupConditionView(viewModel: viewModel.groupCondition)
+                .disabled(viewModel.conditionMode != .multiple)
+                .padding()
             
             HStack {
                 Button("Cancel") {
@@ -26,13 +50,13 @@ struct ConditionDetailView: View {
                 .keyboardShortcut(.cancelAction)
                 
                 Button("Save") {
-                    onSave?()
+                    onSave?(viewModel)
                     window?.close()
                 }
                 .keyboardShortcut(.defaultAction)
             }
-            .padding()
         }
+        .padding(.vertical)
     }
 }
 
@@ -64,15 +88,11 @@ class ConditionDetailViewModel: ObservableObject {
     }
 }
 
-class GroupConditionViewModel: ObservableObject {
-    
-}
-
 class ConditionDetailWindowController {
     
     static func openWindow(for condition: Binding<Condition>, onSave: ((Condition) -> Void)? = nil) {
         
-        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 200)
+        let windowContentRect = NSRect(x: 200, y: 200, width: 800, height: 400)
         let window = NSWindow(
             contentRect: windowContentRect,
             styleMask: [.titled, .closable, .resizable],
@@ -84,16 +104,10 @@ class ConditionDetailWindowController {
         let conditionValue = condition.wrappedValue
         var fieldConditionValue: FieldCondition? = nil
         var groupConditionValue: GroupCondition? = nil
+        
         if let fieldCondition = conditionValue as? FieldCondition {
             fieldConditionValue = fieldCondition
-            let fieldConditionViewModel = FieldConditionViewModel(
-                fieldKey: fieldCondition.fieldKey,
-                matchOperator: fieldCondition.matchOperator,
-                targetValue: fieldCondition.targetValue,
-                isInverted: fieldCondition.isInverted,
-                defaultResult: fieldCondition.defaultResult,
-                isDisabled: fieldCondition.isDisabled,
-            )
+            let fieldConditionViewModel = FieldConditionViewModel.from(fieldCondition)
             
             viewModel = ConditionDetailViewModel(
                 conditionMode: .single,
@@ -103,40 +117,42 @@ class ConditionDetailWindowController {
             
         } else if let groupCondition = conditionValue as? GroupCondition {
             groupConditionValue = groupCondition
+            let groupConditionViewModel = GroupConditionViewModel.from(groupCondition)
+            
             viewModel = ConditionDetailViewModel(
                 conditionMode: .multiple,
                 fieldCondition: FieldConditionViewModel(),
-                groupCondition: GroupConditionViewModel(),
+                groupCondition: groupConditionViewModel,
             )
             
         } else {
-            fatalError("Unknown condition type")
+            fatalError("Unknown condition type: \(type(of: condition))")
         }
         
-        let view = ConditionDetailView(window: window, viewModel: viewModel, onSave: {
+        let view = ConditionDetailView(window: window, viewModel: viewModel, onSave: { viewModel in
             
-            if viewModel.conditionMode == .single {
+            switch viewModel.conditionMode {
+                
+            case .single:
                 let fieldConditionViewModel = viewModel.fieldCondition
                 if let fieldConditionValue = fieldConditionValue {
-                    fieldConditionValue.fieldKey = fieldConditionViewModel.fieldKey
-                    fieldConditionValue.matchOperator = fieldConditionViewModel.matchOperator
-                    fieldConditionValue.targetValue = fieldConditionViewModel.targetValue
-                    fieldConditionValue.isInverted = fieldConditionViewModel.isInverted
-                    fieldConditionValue.defaultResult = fieldConditionViewModel.defaultResult
-                    fieldConditionValue.isDisabled = fieldConditionViewModel.isDisabled
+                    fieldConditionViewModel.to(fieldConditionValue)
                     onSave?(fieldConditionValue)
                     
                 } else {
-                    let fieldCondition = FieldCondition(
-                        id: conditionValue.id,
-                        fieldKey: fieldConditionViewModel.fieldKey,
-                        matchOperator: fieldConditionViewModel.matchOperator,
-                        targetValue: fieldConditionViewModel.targetValue,
-                        isInverted: fieldConditionViewModel.isInverted,
-                        defaultResult: fieldConditionViewModel.defaultResult,
-                        isDisabled: fieldConditionViewModel.isDisabled,
-                    )
+                    let fieldCondition = fieldConditionViewModel.to()
                     onSave?(fieldCondition)
+                }
+                
+            case .multiple:
+                let groupConditionViewModel = viewModel.groupCondition
+                if let groupConditionValue = groupConditionValue {
+                    groupConditionViewModel.to(groupConditionValue)
+                    onSave?(groupConditionValue)
+                    
+                } else {
+                    let groupCondition = groupConditionViewModel.to()
+                    onSave?(groupCondition)
                 }
             }
         })

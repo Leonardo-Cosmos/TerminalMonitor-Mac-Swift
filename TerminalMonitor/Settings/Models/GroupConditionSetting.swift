@@ -7,31 +7,56 @@
 
 import Foundation
 
-class GroupConditionSetting: Codable {
+class GroupConditionSetting: ConditionSetting {
     
-    let id: String?
-    
-    let name: String?
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case isInverted
+        case defaultResult
+        case isDisabled
+        case matchMode
+        case conditions
+    }
     
     let matchMode: GroupMatchMode
     
-    let conditions: [FieldConditionSetting]
-     
-    var isInverted: Bool
+    let conditions: [ConditionSetting]
     
-    var defaultResult: Bool
-    
-    var isDisabled: Bool
-    
-    init(id: String?, name: String?, matchMode: GroupMatchMode, conditions: [FieldConditionSetting],
+    init(id: String?, name: String?, matchMode: GroupMatchMode, conditions: [ConditionSetting],
          isInverted: Bool, defaultResult: Bool, isDisabled: Bool) {
-        self.id = id
-        self.name = name
         self.matchMode = matchMode
         self.conditions = conditions
-        self.isInverted = isInverted
-        self.defaultResult = defaultResult
-        self.isDisabled = isDisabled
+        
+        super.init(
+            id: id,
+            name: name,
+            isInverted: isInverted,
+            defaultResult: defaultResult,
+            isDisabled: isDisabled,
+        )
+    }
+    
+    required init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.matchMode = try container.decode(GroupMatchMode.self, forKey: .matchMode)
+        self.conditions = try container.decode([ConditionSetting].self, forKey: .conditions, using: ConditionSetting.decode(from:))
+        
+        super.init(
+            id: try container.decodeIfPresent(String.self, forKey: .id),
+            name: try container.decodeIfPresent(String.self, forKey: .name),
+            isInverted: try container.decode(Bool.self, forKey: .isInverted),
+            defaultResult: try container.decode(Bool.self, forKey: .defaultResult),
+            isDisabled: try container.decode(Bool.self, forKey: .isDisabled),
+        )
+    }
+    
+    override func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(matchMode, forKey: .matchMode)
+        try container.encode(conditions, forKey: .conditions)
+        
+        try super.encode(to: encoder)
     }
 }
 
@@ -45,9 +70,9 @@ class GroupConditionSettingHelper {
         
         return GroupConditionSetting(
             id: value.id.uuidString,
-            name: value.name!,
+            name: value.name,
             matchMode: value.matchMode,
-            conditions: value.conditions.map { FieldConditionSettingHelper.save($0 as? FieldCondition)! },
+            conditions: value.conditions.map { ConditionSettingHelper.save($0)! },
             isInverted: value.isInverted,
             defaultResult: value.defaultResult,
             isDisabled: value.isDisabled,
@@ -64,7 +89,7 @@ class GroupConditionSettingHelper {
             id: UUID(uuidString: setting.id ?? "") ?? UUID(),
             name: setting.name,
             matchMode: setting.matchMode,
-            conditions: setting.conditions.map { FieldConditionSettingHelper.load($0)! },
+            conditions: setting.conditions.map { ConditionSettingHelper.load($0)! },
             isInverted: setting.isInverted,
             defaultResult: setting.defaultResult,
             isDisabled: setting.isDisabled,

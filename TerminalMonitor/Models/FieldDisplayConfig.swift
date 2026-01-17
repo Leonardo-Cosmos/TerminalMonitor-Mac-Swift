@@ -61,6 +61,16 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
         )
     }
     
+    private func updatePublishedProperties() {
+        if let headerName = self.headerName {
+            self.fieldDescription = "\(self.fieldKey) (\(headerName))"
+            self.fieldColumnHeader = headerName
+        } else {
+            self.fieldDescription = self.fieldKey
+            self.fieldColumnHeader = self.fieldKey
+        }
+    }
+    
     func copy(with zone: NSZone? = nil) -> Any {
         FieldDisplayConfig(
             fieldKey: self.fieldKey,
@@ -72,14 +82,25 @@ class FieldDisplayConfig: Identifiable, ObservableObject, NSCopying {
         )
     }
     
-    private func updatePublishedProperties() {
-        if let headerName = self.headerName {
-            self.fieldDescription = "\(self.fieldKey) (\(headerName))"
-            self.fieldColumnHeader = headerName
-        } else {
-            self.fieldDescription = self.fieldKey
-            self.fieldColumnHeader = self.fieldKey
-        }
+    func copy(id: UUID) -> FieldDisplayConfig {
+        FieldDisplayConfig(
+            id: id,
+            fieldKey: self.fieldKey,
+            hidden: self.hidden,
+            headerName: self.headerName,
+            customizeStyle: self.customizeStyle,
+            style: self.style.copy() as! TextStyleConfig,
+            conditions: self.conditions.map { $0.copy() as! TextStyleCondition }
+        )
+    }
+    
+    func to(_ fieldDisplayConfig: FieldDisplayConfig) {
+        fieldDisplayConfig.fieldKey = self.fieldKey
+        fieldDisplayConfig.hidden = self.hidden
+        fieldDisplayConfig.headerName = self.headerName
+        fieldDisplayConfig.customizeStyle = self.customizeStyle
+        fieldDisplayConfig.style = self.style.copy() as! TextStyleConfig
+        fieldDisplayConfig.conditions = self.conditions.map { $0.copy() as! TextStyleCondition }
     }
 }
 

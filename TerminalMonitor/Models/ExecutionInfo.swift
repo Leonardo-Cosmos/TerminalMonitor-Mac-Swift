@@ -15,3 +15,11 @@ struct ExecutionInfo {
     
     let status: ExecutionStatus
 }
+
+func previewExecutionInfo() -> [ExecutionInfo] {
+    [
+        ExecutionInfo(id: UUID(), name: "Console", status: .started),
+        ExecutionInfo(id: UUID(), name: "Application", status: .started),
+        ExecutionInfo(id: UUID(), name: "Tool", status: .started),
+    ]
+}

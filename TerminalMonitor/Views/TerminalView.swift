@@ -27,11 +27,20 @@ struct TerminalView: View {
     
     @State private var terminalLineViewer: TerminalLineViewer = TerminalLineSupervisor.shared
     
+    @State private var visibleFields: [FieldDisplayConfig] = []
+    
     @State private var filterCondition = GroupCondition.default()
     
     @State private var findCondition = GroupCondition.default()
     
     @State private var lineViewModels: [TerminalLineViewModel] = []
+    
+    /**
+     A dictionary containing style config and its original ID.
+     If a style inherites default, the shown style is the a new style merging the original style to default style.
+     If a style doesn't inherite default, the shown style is the original style.
+     */
+    @State private var shownStyleDict: [UUID: TextStyleConfig] = [:]
     
     /**
      A dictionary containing matching result of each line.
@@ -64,8 +73,8 @@ struct TerminalView: View {
     
     var body: some View {
         VStack {
-            FieldListView(visibleFields: terminalConfig.visibleFields, onFieldsApplied: { visibleFields in
-                applyVisibleFields(visibleFields: visibleFields)
+            FieldListView(visibleFields: $terminalConfig.visibleFields, onFieldsApplied: { visibleFields in
+                applyVisibleFields()
             })
             
             ConditionListView(title: "Filter", groupCondition: terminalConfig.filterCondition, onApplied: {
@@ -110,7 +119,7 @@ struct TerminalView: View {
             
             ScrollViewReader { proxy in
                 Table(lineViewModels, selection: $selectedLineId) {
-                    TableColumnForEach(terminalConfig.visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
+                    TableColumnForEach(visibleFields, id: \.id) { (fieldDisplayConfig: FieldDisplayConfig) in
                         if !fieldDisplayConfig.hidden {
                             TableColumn(fieldDisplayConfig.fieldColumnHeader) { (lineViewModel: TerminalLineViewModel) in
                                 if let fieldViewModel = lineViewModel.lineFieldDict[fieldDisplayConfig.id] {
@@ -170,8 +179,12 @@ struct TerminalView: View {
             }
         }
         .onAppear {
-            filterCondition = terminalConfig.filterCondition
-            findCondition = terminalConfig.findCondition
+            visibleFields = TerminalViewHelper.updateFieldDisplayConfigs(
+                from: terminalConfig.visibleFields,
+                to: visibleFields)
+            initMergedStyleDict()
+            filterCondition = terminalConfig.filterCondition.copy() as! GroupCondition
+            findCondition = terminalConfig.findCondition.copy() as! GroupCondition
             appendMatchedTerminalLines()
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminalLinesAppendedEvent)) { notification in
@@ -282,13 +295,15 @@ struct TerminalView: View {
         shownLines.removeAll()
         shownLines.append(contentsOf: remainingLines)
         
-        lineViewModels.removeAll(where: { removedLineIdSet.contains($0.id) })
+        let remainingLineViewModels = lineViewModels.filter { !removedLineIdSet.contains($0.id) }
+        lineViewModels.removeAll()
+        lineViewModels.append(contentsOf: remainingLineViewModels)
         
         findInTerminal()
     }
     
     private func filterTerminal() {
-        filterCondition = terminalConfig.filterCondition
+        filterCondition = terminalConfig.filterCondition.copy() as! GroupCondition
         
         lineViewModels.removeAll()
         
@@ -311,7 +326,7 @@ struct TerminalView: View {
     }
     
     private func findInTerminal() {
-        findCondition = terminalConfig.findCondition
+        findCondition = terminalConfig.findCondition.copy() as! GroupCondition
         foundLines.removeAll()
         
         let matcher = TerminalLineMatcher(matchCondition: findCondition)
@@ -441,15 +456,32 @@ struct TerminalView: View {
         lastScrollToLineIndex = shownIndex
     }
     
-    private func applyVisibleFields(visibleFields: [FieldDisplayConfig]) {
+    private func applyVisibleFields() {
         // Save column settings
         
-        terminalConfig.visibleFields.removeAll()
-        terminalConfig.visibleFields.append(contentsOf: visibleFields)
+        visibleFields = TerminalViewHelper.updateFieldDisplayConfigs(
+            from: terminalConfig.visibleFields,
+            to: visibleFields)
         
         lineViewModels.removeAll()
         
+        initMergedStyleDict()
+        
         appendMatchedTerminalLines()
+    }
+    
+    private func initMergedStyleDict() {
+        shownStyleDict.removeAll()
+        for visibleField in visibleFields {
+            for textStyleCondition in visibleField.conditions {
+                let style = textStyleCondition.style
+                if textStyleCondition.inheritDefault {
+                    shownStyleDict[style.id] = textStyleCondition.style.merge(to: visibleField.style)
+                } else {
+                    shownStyleDict[style.id] = style
+                }
+            }
+        }
     }
     
     private func appendMatchedTerminalLines() {
@@ -474,7 +506,7 @@ struct TerminalView: View {
     
     private func appendTerminalLine(terminalLine: TerminalLine) {
         
-        let fieldConfigs = terminalConfig.visibleFields
+        let fieldConfigs = visibleFields
             
         guard !fieldConfigs.isEmpty else {
             return
@@ -516,8 +548,12 @@ struct TerminalView: View {
     
     private func findMatchedStyleCondition(terminalLine: TerminalLine, styleConditions: [TextStyleCondition], defaultStyle: TextStyleConfig) -> TextStyleConfig {
         
-        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, fieldCondition: $0.condition) })
-        return matchedStyleCondition?.style ?? defaultStyle
+        let matchedStyleCondition = styleConditions.first(where: { TerminalLineMatcher.matches(terminalLine: terminalLine, matchCondition: $0.condition) })
+        if let matchedStyleCondition = matchedStyleCondition {
+            return shownStyleDict[matchedStyleCondition.style.id]!
+        } else {
+            return defaultStyle
+        }
     }
 }
 

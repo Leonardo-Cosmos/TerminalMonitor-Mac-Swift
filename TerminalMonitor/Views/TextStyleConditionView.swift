@@ -16,8 +16,13 @@ struct TextStyleConditionView: View {
         VStack {
             GroupBox(label: EmptyView()) {
                 HStack {
+                    Toggle("Inherit default", isOn: $viewModel.inheritDefault)
+                        .padding(.trailing)
+                    
                     Button("Edit", systemImage: "pencil") {
-                        ConditionDetailWindowController.openWindow(for: $viewModel.condition)
+                        ConditionDetailWindowController.openWindow(for: $viewModel.condition) { condition in
+                            viewModel.condition = condition
+                        }
                     }
                     .labelStyle(.iconOnly)
                     
@@ -86,13 +91,16 @@ class TextStyleConditionViewModel: Identifiable, ObservableObject {
     
     @Published var style: TextStyleViewModel
     
+    @Published var inheritDefault: Bool
+    
     @Published var condition: Condition
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(id: UUID, style: TextStyleViewModel, condition: Condition) {
+    init(id: UUID, style: TextStyleViewModel, inheritDefault: Bool, condition: Condition) {
         self.id = id
         self.style = style
+        self.inheritDefault = inheritDefault
         self.condition = condition
         
         condition.objectWillChange
@@ -100,10 +108,11 @@ class TextStyleConditionViewModel: Identifiable, ObservableObject {
             .store(in: &cancellables)
     }
     
-    convenience init(style: TextStyleViewModel, condition: Condition) {
+    convenience init(style: TextStyleViewModel, inheritDefault: Bool, condition: Condition) {
         self.init(
             id: UUID(),
             style: style,
+            inheritDefault: inheritDefault,
             condition: condition,
         )
     }
@@ -111,25 +120,29 @@ class TextStyleConditionViewModel: Identifiable, ObservableObject {
     convenience init(condition: Condition) {
         self.init(
             style: TextStyleViewModel(),
-            condition: condition
+            inheritDefault: false,
+            condition: condition,
         )
     }
     
     func to(_ textStyleCondition: TextStyleCondition) {
         style.to(textStyleCondition.style)
-        textStyleCondition.condition = condition as! FieldCondition
+        textStyleCondition.inheritDefault = inheritDefault
+        textStyleCondition.condition = condition
     }
     
     func to() -> TextStyleCondition {
         TextStyleCondition(
             style: style.to(),
-            condition: condition as! FieldCondition
+            inheritDefault: inheritDefault,
+            condition: condition,
         )
     }
     
     static func from(_ textStyleCondition: TextStyleCondition) -> TextStyleConditionViewModel {
         TextStyleConditionViewModel(
             style: TextStyleViewModel.from(textStyleCondition.style),
+            inheritDefault: textStyleCondition.inheritDefault,
             condition: textStyleCondition.condition,
         )
     }
