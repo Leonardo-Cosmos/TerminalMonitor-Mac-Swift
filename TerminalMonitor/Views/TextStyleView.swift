@@ -207,6 +207,9 @@ class TextStyleViewModel: ObservableObject {
                     color: foregroundColor,
                 )
             }
+            if textStyleConfig.foreground?.mode != .fixed {
+                textStyleConfig.foreground?.color = nil
+            }
         } else {
             textStyleConfig.foreground = nil
         }
@@ -221,6 +224,9 @@ class TextStyleViewModel: ObservableObject {
                     color: backgroundColor,
                 )
             }
+            if textStyleConfig.background?.mode != .fixed {
+                textStyleConfig.background?.color = nil
+            }
         } else {
             textStyleConfig.background = nil
         }
@@ -234,6 +240,9 @@ class TextStyleViewModel: ObservableObject {
                     mode: cellBackgroundColorMode,
                     color: cellBackgroundColor,
                 )
+            }
+            if textStyleConfig.cellBackground?.mode != .fixed {
+                textStyleConfig.cellBackground?.color = nil
             }
         } else {
             textStyleConfig.cellBackground = nil

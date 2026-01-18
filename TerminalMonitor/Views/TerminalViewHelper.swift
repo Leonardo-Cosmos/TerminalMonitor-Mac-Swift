@@ -71,9 +71,9 @@ struct TerminalViewHelper {
         }
         
         var (red, green, blue) = rgbTuple
-        red -= 0x80
-        green -= 0x80
-        blue -= 0x80
+        red &-= 0x80
+        green &-= 0x80
+        blue &-= 0x80
         
         return Color(red: red, green: green, blue: blue)
     }
