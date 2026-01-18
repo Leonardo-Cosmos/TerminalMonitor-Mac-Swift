@@ -200,7 +200,7 @@
     "Find Previous" : {
 
     },
-    "Fixed" : {
+    "fixed" : {
 
     },
     "Foreground" : {
@@ -213,6 +213,15 @@
 
     },
     "General" : {
+
+    },
+    "hash" : {
+
+    },
+    "hash inverted" : {
+
+    },
+    "hash symmetric" : {
 
     },
     "Head" : {
