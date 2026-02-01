@@ -103,7 +103,7 @@ struct ConditionTreeView: View {
                 .disabled(selectedId == nil)
             }
             
-            if let conditions = viewModel.conditions {
+            if viewModel.conditions != nil {
                 List(selection: $selectedId) {
                     ForEach(viewModel.conditions!) { condition in
                         ConditionTreeNodeView(viewModel: condition)

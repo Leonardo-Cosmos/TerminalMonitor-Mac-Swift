@@ -530,9 +530,12 @@ struct TerminalView: View {
                 lineFieldDict[fieldDisplayConfig.id] = TerminalFieldViewModel(
                     text: lineField.text,
                     customizeStyle: fieldDisplayConfig.customizeStyle,
-                    foreground: fieldTextStyle.foreground?.color,
-                    background: fieldTextStyle.background?.color,
-                    cellBackground: fieldTextStyle.cellBackground?.color,
+                    foreground: fieldTextStyle.foreground?.run { colorConfig in
+                        TerminalViewHelper.buildTextColor(colorConfig: colorConfig, text: lineField.text) },
+                    background: fieldTextStyle.background?.run { colorConfig in
+                        TerminalViewHelper.buildTextColor(colorConfig: colorConfig, text: lineField.text) },
+                    cellBackground: fieldTextStyle.cellBackground?.run { colorConfig in
+                        TerminalViewHelper.buildTextColor(colorConfig: colorConfig, text: lineField.text) },
                     alignment: fieldTextStyle.alignment?.value,
                     lineLimit: fieldTextStyle.lineLimit,
                     truncationMode: fieldTextStyle.truncationMode?.mode,

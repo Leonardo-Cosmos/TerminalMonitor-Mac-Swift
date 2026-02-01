@@ -36,11 +36,10 @@ class ColorSettingHelper {
         
         let nsColor = NSColor(value)
         
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        nsColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        let red: CGFloat = nsColor.redComponent
+        let green: CGFloat = nsColor.greenComponent
+        let blue: CGFloat = nsColor.blueComponent
+        let alpha: CGFloat = nsColor.alphaComponent
         
         return ColorSetting(
             red: Double(red),

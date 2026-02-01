@@ -172,4 +172,5 @@ class FieldDisplayDetailWindowController {
 
 #Preview {
     FieldDisplayDetailView(viewModel: FieldDisplayDetailViewModel(fieldKey: "Key"))
+        .frame(width: 900, height: 600)
 }

@@ -28,9 +28,10 @@ struct TextStyleView: View {
                         }
                         .disabled(!viewModel.enableForeground)
                         
-                        ColorPicker("", selection: $viewModel.foregroundColor)
-                            .disabled(!viewModel.enableForeground &&
-                                      viewModel.foregroundColorMode == .fixed)
+                        if viewModel.foregroundColorMode == .fixed {
+                            ColorPicker("", selection: $viewModel.foregroundColor)
+                                .disabled(!viewModel.enableForeground)
+                        }
                     }
                     .padding(.horizontal)
                     
@@ -47,9 +48,10 @@ struct TextStyleView: View {
                         }
                         .disabled(!viewModel.enableBackground)
                         
-                        ColorPicker("", selection: $viewModel.backgroundColor)
-                            .disabled(!viewModel.enableBackground &&
-                                      viewModel.backgroundColorMode == .fixed)
+                        if viewModel.backgroundColorMode == .fixed {
+                            ColorPicker("", selection: $viewModel.backgroundColor)
+                                .disabled(!viewModel.enableBackground)
+                        }
                     }
                     .padding(.horizontal)
                     
@@ -66,9 +68,10 @@ struct TextStyleView: View {
                         }
                         .disabled(!viewModel.enableCellBackground)
                         
-                        ColorPicker("", selection: $viewModel.cellBackgroundColor)
-                            .disabled(!viewModel.enableCellBackground &&
-                                      viewModel.cellBackgroundColorMode == .fixed)
+                        if viewModel.cellBackgroundColorMode == .fixed {
+                            ColorPicker("", selection: $viewModel.cellBackgroundColor)
+                                .disabled(!viewModel.enableCellBackground)
+                        }
                     }
                     .padding(.horizontal)
                 }
@@ -207,6 +210,9 @@ class TextStyleViewModel: ObservableObject {
                     color: foregroundColor,
                 )
             }
+            if textStyleConfig.foreground?.mode != .fixed {
+                textStyleConfig.foreground?.color = nil
+            }
         } else {
             textStyleConfig.foreground = nil
         }
@@ -221,6 +227,9 @@ class TextStyleViewModel: ObservableObject {
                     color: backgroundColor,
                 )
             }
+            if textStyleConfig.background?.mode != .fixed {
+                textStyleConfig.background?.color = nil
+            }
         } else {
             textStyleConfig.background = nil
         }
@@ -234,6 +243,9 @@ class TextStyleViewModel: ObservableObject {
                     mode: cellBackgroundColorMode,
                     color: cellBackgroundColor,
                 )
+            }
+            if textStyleConfig.cellBackground?.mode != .fixed {
+                textStyleConfig.cellBackground?.color = nil
             }
         } else {
             textStyleConfig.cellBackground = nil
@@ -267,13 +279,13 @@ class TextStyleViewModel: ObservableObject {
     static func from(_ textStyleConfig: TextStyleConfig) -> TextStyleViewModel {
         TextStyleViewModel(
             enableForeground: textStyleConfig.foreground != nil,
-            foregroundColor: textStyleConfig.foreground?.color ?? .primary,
+            foregroundColor: textStyleConfig.foreground?.color ?? .black,
             foregroundColorMode: textStyleConfig.foreground?.mode ?? .fixed,
             enableBackground: textStyleConfig.background != nil,
-            backgroundColor: textStyleConfig.background?.color ?? .clear,
+            backgroundColor: textStyleConfig.background?.color ?? .white,
             backgroundColorMode: textStyleConfig.background?.mode ?? .fixed,
             enableCellBackground: textStyleConfig.cellBackground != nil,
-            cellBackgroundColor: textStyleConfig.cellBackground?.color ?? .clear,
+            cellBackgroundColor: textStyleConfig.cellBackground?.color ?? .white,
             cellBackgroundColorMode: textStyleConfig.cellBackground?.mode ?? .fixed,
             enableAlignment: textStyleConfig.alignment != nil,
             alignment: textStyleConfig.alignment ?? .center,
@@ -287,4 +299,5 @@ class TextStyleViewModel: ObservableObject {
 
 #Preview {
     TextStyleView(viewModel: TextStyleViewModel())
+        .frame(width: 900)
 }
